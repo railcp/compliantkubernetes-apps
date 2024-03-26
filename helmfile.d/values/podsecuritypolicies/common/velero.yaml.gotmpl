@@ -16,3 +16,18 @@ constraints:
           rule: RunAsAny
         privileged: true
         allowPrivilegeEscalation: true
+    backup-helper:
+      podSelectorLabels:
+        velero.io/exposer-pod-group: snapshot-exposer
+      allow: {}
+      mutation:
+        runAsUser: 10000
+        fsGroup: 10000
+    restore-helper:
+      matchExpressions: # Not yet working / supported in chart
+      - key: velero.io/data-download
+        operator: Exists
+      allow: {}
+      mutation:
+        runAsUser: 10000
+        fsGroup: 10000
