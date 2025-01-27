@@ -1,0 +1,20 @@
+apiVersion: modules.elastisys.com/v1alpha1
+kind: OpenSearch
+metadata:
+  name: opensearch-master
+spec:
+  roles: {{ toYaml .Values.roles | nindent 4 }}
+  clusterName: {{ .Values.clusterName }}
+  replicas: {{ .Values.replicas }}
+  {{ with .Values.opensearchJavaOpts -}}
+  opensearchJavaOpts: {{ . }}
+  {{ end -}}
+  {{ with .Values.keystore -}}
+  keystore: {{ toYaml . | nindent 4 }}
+  {{ end -}}
+  {{ with .Values.plugins -}}
+  plugins: {{ toYaml . | nindent 4 }}
+  {{ end -}}
+  {{ with .Values.config -}}
+  config: {{ toYaml . | nindent 4 }}
+  {{ end -}}

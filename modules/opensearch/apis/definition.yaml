@@ -1,0 +1,59 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: opensearchs.modules.elastisys.com
+spec:
+  group: modules.elastisys.com
+  names:
+    kind: OpenSearch
+    plural: opensearchs
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                roles:
+                  type: array
+                  items:
+                    type: string
+                clusterName:
+                  type: string
+                replicas:
+                  type: integer
+                opensearchJavaOpts:
+                  type: string
+                plugins:
+                  type: object
+                  properties:
+                    enabled:
+                      type: boolean
+                    installList:
+                      type: array
+                      items:
+                        type: string
+                    requires:
+                      - enabled
+                      - installList
+                keystore:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      secretName:
+                        type: string
+                    requires:
+                      - secretName
+                config:
+                  type: object
+                  additionalProperties:
+                    type: string
+              required:
+                - roles
+                - clusterName
+                - replicas

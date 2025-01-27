@@ -32,8 +32,8 @@ templates:
     disableValidationOnInstall: true
     inherit:
       - template: opensearch
-      - template: opensearch-chart
     installed: {{ .Values | get "opensearch.enabled" false }}
+    chart: charts/opensearch/opensearch
     name: opensearch-master
     needs:
       {{- if .Values | get "opensearch.sso.enabled" false }}
