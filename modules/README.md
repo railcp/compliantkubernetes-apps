@@ -9,8 +9,6 @@ Publish a configuration package:
 Verify that there are no diffs between the existing release and the module payload:
 
 ```shell
-helmfile -f ../helmfile.d -e service_cluster template --selector app=metrics-server |
-    crossplane render /dev/stdin ./metrics-server/apis/composition.yaml ./hack/functions.yaml |
-    yq4 'select(.kind == "Release")' |
-    ./hack/crossplane-helm.bash diff metrics-server /dev/stdin
+helmfile -f ../helmfile.d -e service_cluster template --selector name=opensearch-master |
+    ./hack/crossplane-helm.bash diff opensearch opensearch-master
 ```

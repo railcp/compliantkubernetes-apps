@@ -7,11 +7,20 @@
 
 set -euo pipefail
 
+here="$(dirname "$(readlink -f "$0")")"
+
 command="${1}"
-release_name="${2}"
-crossplane_release_contents="$(cat "${3}")"
+name="${2}"
+release_name="${3}"
+
+package_path="${here}/../${name}"
 
 helm_temporary_repo_name="welkin-crossplane-module-diff-${release_name}"
+
+crossplane_release_contents="$(
+  crossplane render /dev/stdin "${package_path}/apis/composition.yaml" "${here}/functions.yaml" |
+    yq4 'select(.kind == "Release")'
+)"
 
 release_namespace=$(echo "${crossplane_release_contents}" | yq4 '.spec.forProvider.namespace')
 chart_repository=$(echo "${crossplane_release_contents}" | yq4 '.spec.forProvider.chart.repository')

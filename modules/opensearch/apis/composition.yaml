@@ -105,3 +105,6 @@ spec:
               - type: FromCompositeFieldPath
                 fromFieldPath: spec.config
                 toFieldPath: spec.forProvider.values.config
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.resources
+                toFieldPath: spec.forProvider.values.resources

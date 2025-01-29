@@ -14,7 +14,7 @@ kubernetes_schema=https://raw.githubusercontent.com/kubernetes/kubernetes/refs/h
 kube_schema_definition() {
   local definition_name="${1}"
 
-  docker run --rm redocly/cli bundle --dereferenced "${kubernetes_schema}" | yq4 -o json '.definitions["'"${definition_name}"'"]' | yq4 --prettyPrint
+  docker run --rm redocly/cli bundle --dereferenced "${kubernetes_schema}" | yq4 --output-format json '.definitions["'"${definition_name}"'"]' | yq4 --prettyPrint
 }
 
 kind=$(yq4 '.kind' "${package_path}/definition-gen.yaml")
@@ -24,6 +24,11 @@ export kind
 export plural
 yq4 '(.. | select(tag == "!!str")) |= envsubst(nu)' "${here}/definition-base.yaml" >"${definition_path}"
 
-# TODO: Loop over kubernetesProperties
-kube_schema_definition io.k8s.api.core.v1.Affinity |
-  yq4 -i '.spec.versions[0].schema.openAPIV3Schema.properties.spec.properties.affinity = load("/dev/stdin")' "${definition_path}"
+yq4 '.properties' "${package_path}/definition-gen.yaml" | yq4 --inplace '.spec.versions[0].schema.openAPIV3Schema.properties.spec.properties = load("/dev/stdin")' "${definition_path}"
+
+while read -r property definition; do
+  kube_schema_definition "${definition}" |
+    yq4 --inplace '.spec.versions[0].schema.openAPIV3Schema.properties.spec.properties.'"${property}"' = load("/dev/stdin")' "${definition_path}"
+done < <(yq4 '.kubernetesProperties | to_entries | .[] | (.key + " " + .value)' "${package_path}/definition-gen.yaml")
+
+yq4 --prettyPrint --inplace 'sort_keys(.spec.versions[0].schema.openAPIV3Schema.properties.spec.properties)' "${definition_path}"
