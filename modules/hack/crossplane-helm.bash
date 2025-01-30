@@ -7,26 +7,17 @@
 
 set -euo pipefail
 
-here="$(dirname "$(readlink -f "$0")")"
-
 command="${1}"
-name="${2}"
-release_name="${3}"
-
-package_path="${here}/../${name}"
+release_name="${2}"
+crossplane_release_contents="$(cat "${3}")"
 
 helm_temporary_repo_name="welkin-crossplane-module-diff-${release_name}"
 
-crossplane_release_contents="$(
-  crossplane render /dev/stdin "${package_path}/apis/composition.yaml" "${here}/functions.yaml" |
-    yq4 'select(.kind == "Release")'
-)"
-
-release_namespace=$(echo "${crossplane_release_contents}" | yq4 '.spec.forProvider.namespace')
-chart_repository=$(echo "${crossplane_release_contents}" | yq4 '.spec.forProvider.chart.repository')
-chart_name=$(echo "${crossplane_release_contents}" | yq4 '.spec.forProvider.chart.name')
-chart_version=$(echo "${crossplane_release_contents}" | yq4 '.spec.forProvider.chart.version')
-values="$(echo "${crossplane_release_contents}" | yq4 -o json '.spec.forProvider.values')"
+release_namespace=$(yq4 '.spec.forProvider.namespace' <<<"${crossplane_release_contents}")
+chart_repository=$(yq4 '.spec.forProvider.chart.repository' <<<"${crossplane_release_contents}")
+chart_name=$(yq4 '.spec.forProvider.chart.name' <<<"${crossplane_release_contents}")
+chart_version=$(yq4 '.spec.forProvider.chart.version' <<<"${crossplane_release_contents}")
+values="$(yq4 -o json '.spec.forProvider.values' <<<"${crossplane_release_contents}")"
 
 helm repo add "${helm_temporary_repo_name}" "${chart_repository}" >/dev/null
 trap 'helm repo remove "${helm_temporary_repo_name}" >/dev/null' EXIT

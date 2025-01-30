@@ -32,6 +32,7 @@ spec:
                     name: opensearch
                     version: "2.26.1"
                   values:
+                    nodeGroup: master
                     networkPolicy:
                       create: true
                     rbac:
@@ -108,3 +109,28 @@ spec:
               - type: FromCompositeFieldPath
                 fromFieldPath: spec.resources
                 toFieldPath: spec.forProvider.values.resources
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.persistence.storageClass
+                toFieldPath: spec.forProvider.values.persistence.storageClass
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.persistence.size
+                toFieldPath: spec.forProvider.values.persistence.size
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.antiAffinityTopologyKey
+                toFieldPath: spec.forProvider.values.antiAffinityTopologyKey
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.antiAffinity
+                toFieldPath: spec.forProvider.values.antiAffinity
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.nodeAffinity
+                toFieldPath: spec.forProvider.values.nodeAffinity
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.nodeSelector
+                toFieldPath: spec.forProvider.values.nodeSelector
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.tolerations
+                toFieldPath: spec.forProvider.values.tolerations
+              # TODO: Lazy, real implementation should be stricter
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.ingress
+                toFieldPath: spec.forProvider.values.ingress

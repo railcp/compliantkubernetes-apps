@@ -6,7 +6,7 @@ here="$(dirname "$(readlink -f "$0")")"
 
 name="${1}"
 
-package_path="${here}/../../${name}"
+package_path="${here}/../${name}"
 definition_path="${package_path}/apis/definition.yaml"
 
 kubernetes_schema=https://raw.githubusercontent.com/kubernetes/kubernetes/refs/heads/release-1.32/api/openapi-spec/swagger.json
@@ -26,9 +26,15 @@ yq4 '(.. | select(tag == "!!str")) |= envsubst(nu)' "${here}/definition-base.yam
 
 yq4 '.properties' "${package_path}/definition-gen.yaml" | yq4 --inplace '.spec.versions[0].schema.openAPIV3Schema.properties.spec.properties = load("/dev/stdin")' "${definition_path}"
 
-while read -r property definition; do
-  kube_schema_definition "${definition}" |
-    yq4 --inplace '.spec.versions[0].schema.openAPIV3Schema.properties.spec.properties.'"${property}"' = load("/dev/stdin")' "${definition_path}"
-done < <(yq4 '.kubernetesProperties | to_entries | .[] | (.key + " " + .value)' "${package_path}/definition-gen.yaml")
+while read -r property definition isArray; do
+  if [ "${isArray}" = "true" ]; then
+    yq4 --inplace '.spec.versions[0].schema.openAPIV3Schema.properties.spec.properties.'"${property}".type' = "array"' "${definition_path}"
+    kube_schema_definition "${definition}" |
+      yq4 --inplace '.spec.versions[0].schema.openAPIV3Schema.properties.spec.properties.'"${property}".items' = load("/dev/stdin")' "${definition_path}"
+  else
+    kube_schema_definition "${definition}" |
+      yq4 --inplace '.spec.versions[0].schema.openAPIV3Schema.properties.spec.properties.'"${property}"' = load("/dev/stdin")' "${definition_path}"
+  fi
+done < <(yq4 '.kubernetesDefinitions.[] | (.property + " " + .definition + " " + .isArray // false)' "${package_path}/definition-gen.yaml")
 
 yq4 --prettyPrint --inplace 'sort_keys(.spec.versions[0].schema.openAPIV3Schema.properties.spec.properties)' "${definition_path}"

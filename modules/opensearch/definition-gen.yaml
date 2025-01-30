@@ -1,7 +1,13 @@
 kind: OpenSearch
 version: v1alpha1
-kubernetesProperties:
- resources: io.k8s.api.core.v1.ResourceRequirements
+kubernetesDefinitions:
+  - property: nodeAffinity
+    definition: io.k8s.api.core.v1.NodeAffinity
+  - property: resources
+    definition: io.k8s.api.core.v1.ResourceRequirements
+  - property: tolerations
+    definition: io.k8s.api.core.v1.Toleration
+    isArray: true
 properties:
   roles:
     type: array
@@ -22,9 +28,9 @@ properties:
         type: array
         items:
           type: string
-      requires:
-        - enabled
-        - installList
+    requires:
+      - enabled
+      - installList
   keystore:
     type: array
     items:
@@ -38,7 +44,53 @@ properties:
     type: object
     additionalProperties:
       type: string
+  persistence:
+    type: object
+    properties:
+      storageClass:
+        type: string
+      size:
+        type: string
+    required:
+      - size
+  antiAffinityTopologyKey:
+    type: string
+  antiAffinity:
+    type: string
+  nodeSelector:
+    type: object
+    additionalProperties:
+      type: string
+  ingress:
+    type: object
+    properties:
+      enabled:
+        type: boolean
+      ingressClassName:
+        type: string
+      annotations:
+        type: object
+        additionalProperties:
+          type: string
+      path:
+        type: string
+      hosts:
+        type: array
+        items:
+          type: string
+      tls:
+        type: array
+        items:
+          type: object
+          properties:
+            secretName:
+              type: string
+            hosts:
+              type: array
+              items:
+                type: string
 required:
   - roles
   - clusterName
   - replicas
+  - persistence

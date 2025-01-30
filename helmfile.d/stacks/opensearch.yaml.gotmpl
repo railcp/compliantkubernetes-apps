@@ -34,7 +34,7 @@ templates:
       - template: opensearch
     installed: {{ .Values | get "opensearch.enabled" false }}
     chart: charts/opensearch/opensearch
-    name: opensearch-master
+    name: module-opensearch-master
     needs:
       {{- if .Values | get "opensearch.sso.enabled" false }}
       - dex/dex
@@ -55,7 +55,7 @@ templates:
     name: opensearch-client
     needs:
       - kube-system/service-cluster-np
-      - opensearch-system/opensearch-master
+      - opensearch-system/module-opensearch-master
       - opensearch-system/podsecuritypolicy
     values:
       - values/opensearch/common.yaml.gotmpl
@@ -70,7 +70,7 @@ templates:
     name: opensearch-data
     needs:
       - kube-system/service-cluster-np
-      - opensearch-system/opensearch-master
+      - opensearch-system/module-opensearch-master
       - opensearch-system/podsecuritypolicy
     values:
       - values/opensearch/common.yaml.gotmpl
@@ -88,7 +88,7 @@ templates:
       - dex/dex
       {{- end }}
       - kube-system/service-cluster-np
-      - opensearch-system/opensearch-master
+      - opensearch-system/module-opensearch-master
       - opensearch-system/podsecuritypolicy
     values:
       - values/opensearch/dashboards.yaml.gotmpl
@@ -101,7 +101,7 @@ templates:
     version: 0.1.0
     name: opensearch-securityadmin
     needs:
-      - opensearch-system/opensearch-master
+      - opensearch-system/module-opensearch-master
       {{- if .Values | get "opensearch.clientNode.dedicatedPods" false }}
       - opensearch-system/opensearch-client
       {{- end }}
@@ -121,7 +121,7 @@ templates:
       {{- if .Values | get "opensearch.securityadmin.enabled" false }}
       - opensearch-system/opensearch-securityadmin
       {{- else }}
-      - opensearch-system/opensearch-master
+      - opensearch-system/module-opensearch-master
       {{- end }}
       - opensearch-system/opensearch-dashboards
     values:
