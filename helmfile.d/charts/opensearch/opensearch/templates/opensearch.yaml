@@ -1,8 +1,9 @@
 apiVersion: modules.elastisys.com/v1alpha1
 kind: OpenSearch
 metadata:
-  name: opensearch-master
+  name: {{ .Release.Name | trimPrefix "module-" }}
 spec:
+  nodeGroup: {{ .Values.nodeGroup }}
   roles: {{ toYaml .Values.roles | nindent 4 }}
   clusterName: {{ .Values.clusterName }}
   replicas: {{ .Values.replicas }}

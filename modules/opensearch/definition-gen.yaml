@@ -9,6 +9,8 @@ kubernetesDefinitions:
     definition: io.k8s.api.core.v1.Toleration
     isArray: true
 properties:
+  nodeGroup:
+    type: string
   roles:
     type: array
     items:
@@ -49,6 +51,7 @@ properties:
     properties:
       storageClass:
         type: string
+        nullable: true
       size:
         type: string
     required:
@@ -89,8 +92,3 @@ properties:
               type: array
               items:
                 type: string
-required:
-  - roles
-  - clusterName
-  - replicas
-  - persistence

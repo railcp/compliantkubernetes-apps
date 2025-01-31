@@ -201,6 +201,8 @@ spec:
                       type: object
                       x-kubernetes-map-type: atomic
                   type: object
+                nodeGroup:
+                  type: string
                 nodeSelector:
                   type: object
                   additionalProperties:
@@ -212,6 +214,7 @@ spec:
                   properties:
                     storageClass:
                       type: string
+                      nullable: true
                     size:
                       type: string
                   required:

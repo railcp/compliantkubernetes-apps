@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -euo pipefail
+shopt -s inherit_errexit
 
 here="$(dirname "$(readlink -f "$0")")"
 
@@ -18,9 +19,10 @@ helm_template() {
 
 helm_template_main() {
   git worktree add main --quiet
-  trap 'git worktree remove main' RETURN
+  trap 'git worktree remove main' RETURN ERR
 
   helmfile -f "./main/helmfile.d" -e "${helmfile_environment}" template --selector name="${release_name#"module-"}"
+  : # TODO: helmfile as the last command prevents the trap from firing for some reason
 }
 
 render_release() {
@@ -37,12 +39,9 @@ crossplane_template() {
 }
 
 diff_template() {
-  # Diff output is not immediately printed to prevent it from being printed in case of an error.
-  out=$(diff --unified --color=always <(helm_template_main || kill $$) <(
-    helm_template | render_release | crossplane_template || kill $$
-    echo
-  ) || true)
-  echo -n "${out}"
+  a=$(helm_template_main)
+  b=$(helm_template | render_release | crossplane_template)
+  diff --unified --color <(echo "${a}") <(echo "${b}")
 }
 
 validate() {
@@ -54,4 +53,6 @@ case "${command}" in
 "diff-template") diff_template ;;
 "validate") validate ;;
 "dev") validate && diff_template ;;
+"render") helm_template | render_release ;;
+"template") helm_template ;;
 esac

@@ -50,9 +50,9 @@ templates:
   opensearch-client:
     inherit:
       - template: opensearch
-      - template: opensearch-chart
     installed: {{ and ( .Values | get "opensearch.enabled" false) (.Values | get "opensearch.clientNode.dedicatedPods" false) }}
-    name: opensearch-client
+    chart: charts/opensearch/opensearch
+    name: module-opensearch-client
     needs:
       - kube-system/service-cluster-np
       - opensearch-system/module-opensearch-master
@@ -65,9 +65,9 @@ templates:
   opensearch-data:
     inherit:
       - template: opensearch
-      - template: opensearch-chart
     installed: {{ and ( .Values | get "opensearch.enabled" false) (.Values | get "opensearch.dataNode.dedicatedPods" false) }}
-    name: opensearch-data
+    chart: charts/opensearch/opensearch
+    name: module-opensearch-data
     needs:
       - kube-system/service-cluster-np
       - opensearch-system/module-opensearch-master
@@ -103,10 +103,10 @@ templates:
     needs:
       - opensearch-system/module-opensearch-master
       {{- if .Values | get "opensearch.clientNode.dedicatedPods" false }}
-      - opensearch-system/opensearch-client
+      - opensearch-system/module-opensearch-client
       {{- end }}
       {{- if .Values | get "opensearch.dataNode.dedicatedPods" false }}
-      - opensearch-system/opensearch-data
+      - opensearch-system/module-opensearch-data
       {{- end }}
     values:
       - values/opensearch/securityadmin.yaml.gotmpl

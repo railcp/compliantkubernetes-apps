@@ -6,7 +6,7 @@ Generate XRD:
 ./hack/definition-gen.bash metrics-server
 ```
 
-Publish a configuration package:
+Publish a Configuration package:
 
 ```shell
 ./hack/push-package.bash metrics-server v0.0.1

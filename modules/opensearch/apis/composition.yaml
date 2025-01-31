@@ -15,12 +15,10 @@ spec:
         apiVersion: pt.fn.crossplane.io/v1beta1
         kind: Resources
         resources:
-          - name: opensearch-master
+          - name: opensearch
             base:
               apiVersion: helm.crossplane.io/v1beta1
               kind: Release
-              metadata:
-                name: opensearch-master
               spec:
                 providerConfigRef:
                   name: helm
@@ -32,7 +30,6 @@ spec:
                     name: opensearch
                     version: "2.26.1"
                   values:
-                    nodeGroup: master
                     networkPolicy:
                       create: true
                     rbac:
@@ -78,6 +75,9 @@ spec:
                           runAsUser: 0
             patches:
               - type: FromCompositeFieldPath
+                fromFieldPath: metadata.name
+                toFieldPath: metadata.name
+              - type: FromCompositeFieldPath
                 fromFieldPath: spec.roles
                 toFieldPath: spec.forProvider.values.roles
               - type: FromCompositeFieldPath
@@ -91,6 +91,9 @@ spec:
                     string:
                       type: Format
                       fmt: "%s-master"
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.nodeGroup
+                toFieldPath: spec.forProvider.values.nodeGroup
               - type: FromCompositeFieldPath
                 fromFieldPath: spec.replicas
                 toFieldPath: spec.forProvider.values.replicas
