@@ -3,11 +3,10 @@ kind: OpenSearch
 metadata:
   name: opensearch-master
 spec:
-  roles:
-    - master
   clusterName: opensearch
-  replicas: 1
-  opensearchJavaOpts: "-Xms1024m -Xmx1024m"
+  master:
+    replicas: 1
+    opensearchJavaOpts: "-Xms1024m -Xmx1024m"
   keystore:
     - secretName: opensearch-s3-secret
   plugins:

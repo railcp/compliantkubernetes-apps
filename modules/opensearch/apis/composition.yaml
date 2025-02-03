@@ -15,10 +15,12 @@ spec:
         apiVersion: pt.fn.crossplane.io/v1beta1
         kind: Resources
         resources:
-          - name: opensearch
+          - name: opensearch-master
             base:
               apiVersion: helm.crossplane.io/v1beta1
               kind: Release
+              metadata:
+                name: opensearch-master
               spec:
                 providerConfigRef:
                   name: helm
@@ -30,6 +32,9 @@ spec:
                     name: opensearch
                     version: "2.26.1"
                   values:
+                    nodeGroup: master
+                    roles:
+                      - master
                     networkPolicy:
                       create: true
                     rbac:
@@ -75,11 +80,122 @@ spec:
                           runAsUser: 0
             patches:
               - type: FromCompositeFieldPath
-                fromFieldPath: metadata.name
-                toFieldPath: metadata.name
+                fromFieldPath: spec.clusterName
+                toFieldPath: spec.forProvider.values.clusterName
               - type: FromCompositeFieldPath
-                fromFieldPath: spec.roles
-                toFieldPath: spec.forProvider.values.roles
+                fromFieldPath: spec.clusterName
+                toFieldPath: spec.forProvider.values.masterService
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-master"
+
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.config
+                toFieldPath: spec.forProvider.values.config
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.plugins
+                toFieldPath: spec.forProvider.values.plugins
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.keystore
+                toFieldPath: spec.forProvider.values.keystore
+
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.master.replicas
+                toFieldPath: spec.forProvider.values.replicas
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.master.opensearchJavaOpts
+                toFieldPath: spec.forProvider.values.opensearchJavaOpts
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.master.resources
+                toFieldPath: spec.forProvider.values.resources
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.master.persistence.storageClass
+                toFieldPath: spec.forProvider.values.persistence.storageClass
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.master.persistence.size
+                toFieldPath: spec.forProvider.values.persistence.size
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.master.antiAffinityTopologyKey
+                toFieldPath: spec.forProvider.values.antiAffinityTopologyKey
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.master.antiAffinity
+                toFieldPath: spec.forProvider.values.antiAffinity
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.master.nodeAffinity
+                toFieldPath: spec.forProvider.values.nodeAffinity
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.master.nodeSelector
+                toFieldPath: spec.forProvider.values.nodeSelector
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.master.tolerations
+                toFieldPath: spec.forProvider.values.tolerations
+          - name: opensearch-client
+            base:
+              apiVersion: helm.crossplane.io/v1beta1
+              kind: Release
+              metadata:
+                name: opensearch-client
+              spec:
+                providerConfigRef:
+                  name: helm
+                forProvider:
+                  wait: true
+                  namespace: opensearch-system
+                  chart:
+                    repository: https://opensearch-project.github.io/helm-charts
+                    name: opensearch
+                    version: "2.26.1"
+                  values:
+                    nodeGroup: client
+                    roles:
+                      - ingest
+                      - remote_cluster_client
+                    networkPolicy:
+                      create: true
+                    rbac:
+                      create: true
+                    persistence:
+                      enableInitChown: false
+                    secretMounts:
+                      - secretName: opensearch-transport-cert
+                        name: opensearch-transport-cert
+                        path: /usr/share/opensearch/config/transport
+                        defaultMode: 0400
+                      - secretName: opensearch-http-cert
+                        name: opensearch-http-cert
+                        path: /usr/share/opensearch/config/http
+                        defaultMode: 0400
+                    securityContext:
+                      runAsNonRoot: true
+                      runAsGroup: 1000
+                      runAsUser: 1000
+                      capabilities:
+                        drop:
+                          - ALL
+                    podSecurityContext:
+                      fsGroup: 1000
+                    # To prevent the demo certs from generating: https://github.com/opensearch-project/helm-charts/issues/154
+                    extraEnvs:
+                      - name: DISABLE_INSTALL_DEMO_CONFIG
+                        value: "true"
+                    # This is a workaround to set vm.max_map_count before OpenSearch starts.
+                    # The chart provides this using non privileged container, and instead allows the unsafe sysctl through PSP.
+                    # However this relies on the unsafe sysctl to be allowed in kubelet, which it is not by default.
+                    extraInitContainers:
+                      - name: init-sysctl
+                        image: ghcr.io/elastisys/curl-jq:1.0.0
+                        command:
+                          - sysctl
+                          - -w
+                          - vm.max_map_count=262144
+                        securityContext:
+                          allowPrivilegeEscalation: true
+                          privileged: true
+                          runAsNonRoot: false
+                          runAsUser: 0
+            patches:
               - type: FromCompositeFieldPath
                 fromFieldPath: spec.clusterName
                 toFieldPath: spec.forProvider.values.clusterName
@@ -91,49 +207,164 @@ spec:
                     string:
                       type: Format
                       fmt: "%s-master"
+
               - type: FromCompositeFieldPath
-                fromFieldPath: spec.nodeGroup
-                toFieldPath: spec.forProvider.values.nodeGroup
-              - type: FromCompositeFieldPath
-                fromFieldPath: spec.replicas
-                toFieldPath: spec.forProvider.values.replicas
-              - type: FromCompositeFieldPath
-                fromFieldPath: spec.opensearchJavaOpts
-                toFieldPath: spec.forProvider.values.opensearchJavaOpts
+                fromFieldPath: spec.config
+                toFieldPath: spec.forProvider.values.config
               - type: FromCompositeFieldPath
                 fromFieldPath: spec.plugins
                 toFieldPath: spec.forProvider.values.plugins
               - type: FromCompositeFieldPath
                 fromFieldPath: spec.keystore
                 toFieldPath: spec.forProvider.values.keystore
+
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.client.replicas
+                toFieldPath: spec.forProvider.values.replicas
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.client.opensearchJavaOpts
+                toFieldPath: spec.forProvider.values.opensearchJavaOpts
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.client.resources
+                toFieldPath: spec.forProvider.values.resources
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.client.persistence.size
+                toFieldPath: spec.forProvider.values.persistence.size
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.client.persistence.storageClass
+                toFieldPath: spec.forProvider.values.persistence.storageClass
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.client.antiAffinityTopologyKey
+                toFieldPath: spec.forProvider.values.antiAffinityTopologyKey
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.client.antiAffinity
+                toFieldPath: spec.forProvider.values.antiAffinity
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.client.nodeAffinity
+                toFieldPath: spec.forProvider.values.nodeAffinity
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.client.nodeSelector
+                toFieldPath: spec.forProvider.values.nodeSelector
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.client.tolerations
+                toFieldPath: spec.forProvider.values.tolerations
+              # TODO: Lazy, real implementation should be stricter
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.client.ingress
+                toFieldPath: spec.forProvider.values.ingress
+          - name: opensearch-data
+            base:
+              apiVersion: helm.crossplane.io/v1beta1
+              kind: Release
+              metadata:
+                name: opensearch-data
+              spec:
+                providerConfigRef:
+                  name: helm
+                forProvider:
+                  wait: true
+                  namespace: opensearch-system
+                  chart:
+                    repository: https://opensearch-project.github.io/helm-charts
+                    name: opensearch
+                    version: "2.26.1"
+                  values:
+                    nodeGroup: data
+                    roles:
+                      - data
+                    networkPolicy:
+                      create: true
+                    rbac:
+                      create: true
+                    persistence:
+                      enableInitChown: false
+                    secretMounts:
+                      - secretName: opensearch-transport-cert
+                        name: opensearch-transport-cert
+                        path: /usr/share/opensearch/config/transport
+                        defaultMode: 0400
+                      - secretName: opensearch-http-cert
+                        name: opensearch-http-cert
+                        path: /usr/share/opensearch/config/http
+                        defaultMode: 0400
+                    securityContext:
+                      runAsNonRoot: true
+                      runAsGroup: 1000
+                      runAsUser: 1000
+                      capabilities:
+                        drop:
+                          - ALL
+                    podSecurityContext:
+                      fsGroup: 1000
+                    # To prevent the demo certs from generating: https://github.com/opensearch-project/helm-charts/issues/154
+                    extraEnvs:
+                      - name: DISABLE_INSTALL_DEMO_CONFIG
+                        value: "true"
+                    # This is a workaround to set vm.max_map_count before OpenSearch starts.
+                    # The chart provides this using non privileged container, and instead allows the unsafe sysctl through PSP.
+                    # However this relies on the unsafe sysctl to be allowed in kubelet, which it is not by default.
+                    extraInitContainers:
+                      - name: init-sysctl
+                        image: ghcr.io/elastisys/curl-jq:1.0.0
+                        command:
+                          - sysctl
+                          - -w
+                          - vm.max_map_count=262144
+                        securityContext:
+                          allowPrivilegeEscalation: true
+                          privileged: true
+                          runAsNonRoot: false
+                          runAsUser: 0
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.clusterName
+                toFieldPath: spec.forProvider.values.clusterName
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.clusterName
+                toFieldPath: spec.forProvider.values.masterService
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-master"
+
               - type: FromCompositeFieldPath
                 fromFieldPath: spec.config
                 toFieldPath: spec.forProvider.values.config
               - type: FromCompositeFieldPath
-                fromFieldPath: spec.resources
+                fromFieldPath: spec.plugins
+                toFieldPath: spec.forProvider.values.plugins
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.keystore
+                toFieldPath: spec.forProvider.values.keystore
+
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.data.replicas
+                toFieldPath: spec.forProvider.values.replicas
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.data.opensearchJavaOpts
+                toFieldPath: spec.forProvider.values.opensearchJavaOpts
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.data.resources
                 toFieldPath: spec.forProvider.values.resources
               - type: FromCompositeFieldPath
-                fromFieldPath: spec.persistence.storageClass
-                toFieldPath: spec.forProvider.values.persistence.storageClass
-              - type: FromCompositeFieldPath
-                fromFieldPath: spec.persistence.size
+                fromFieldPath: spec.data.persistence.size
                 toFieldPath: spec.forProvider.values.persistence.size
               - type: FromCompositeFieldPath
-                fromFieldPath: spec.antiAffinityTopologyKey
+                fromFieldPath: spec.data.persistence.storageClass
+                toFieldPath: spec.forProvider.values.persistence.storageClass
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.data.antiAffinityTopologyKey
                 toFieldPath: spec.forProvider.values.antiAffinityTopologyKey
               - type: FromCompositeFieldPath
-                fromFieldPath: spec.antiAffinity
+                fromFieldPath: spec.data.antiAffinity
                 toFieldPath: spec.forProvider.values.antiAffinity
               - type: FromCompositeFieldPath
-                fromFieldPath: spec.nodeAffinity
+                fromFieldPath: spec.data.nodeAffinity
                 toFieldPath: spec.forProvider.values.nodeAffinity
               - type: FromCompositeFieldPath
-                fromFieldPath: spec.nodeSelector
+                fromFieldPath: spec.data.nodeSelector
                 toFieldPath: spec.forProvider.values.nodeSelector
               - type: FromCompositeFieldPath
-                fromFieldPath: spec.tolerations
+                fromFieldPath: spec.data.tolerations
                 toFieldPath: spec.forProvider.values.tolerations
-              # TODO: Lazy, real implementation should be stricter
-              - type: FromCompositeFieldPath
-                fromFieldPath: spec.ingress
-                toFieldPath: spec.forProvider.values.ingress

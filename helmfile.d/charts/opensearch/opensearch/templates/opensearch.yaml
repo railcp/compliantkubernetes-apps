@@ -3,12 +3,9 @@ kind: OpenSearch
 metadata:
   name: {{ .Release.Name | trimPrefix "module-" }}
 spec:
-  nodeGroup: {{ .Values.nodeGroup }}
-  roles: {{ toYaml .Values.roles | nindent 4 }}
   clusterName: {{ .Values.clusterName }}
-  replicas: {{ .Values.replicas }}
-  {{ with .Values.opensearchJavaOpts -}}
-  opensearchJavaOpts: {{ . }}
+  {{ with .Values.config -}}
+  config: {{ toYaml . | nindent 4 }}
   {{ end -}}
   {{ with .Values.keystore -}}
   keystore: {{ toYaml . | nindent 4 }}
@@ -16,39 +13,14 @@ spec:
   {{ with .Values.plugins -}}
   plugins: {{ toYaml . | nindent 4 }}
   {{ end -}}
-  {{ with .Values.config -}}
-  config: {{ toYaml . | nindent 4 }}
-  {{ end -}}
-  {{- with .Values.resources }}
-  resources:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-  {{- with .Values.persistence }}
-  persistence:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-  {{- with .Values.antiAffinityTopologyKey }}
-  antiAffinityTopologyKey:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-  {{- with .Values.antiAffinity }}
-  antiAffinity:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-  {{- with .Values.nodeAffinity }}
-  nodeAffinity:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-  {{- with .Values.nodeSelector }}
-  nodeSelector:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-  {{- with .Values.tolerations }}
-  tolerations:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
+
   # TODO: Lazy, real implementation should be stricter
-  {{- with .Values.ingress }}
-  ingress:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
+  {{ with .Values.master -}}
+  master: {{ toYaml . | nindent 4 }}
+  {{ end -}}
+  {{ with .Values.client -}}
+  client: {{ toYaml . | nindent 4 }}
+  {{ end -}}
+  {{ with .Values.data -}}
+  data: {{ toYaml . | nindent 4 }}
+  {{ end -}}

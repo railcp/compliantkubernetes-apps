@@ -1,11 +1,25 @@
 kind: OpenSearch
 version: v1alpha1
 kubernetesDefinitions:
-  - property: nodeAffinity
+  - property: master.properties.nodeAffinity
     definition: io.k8s.api.core.v1.NodeAffinity
-  - property: resources
+  - property: master.properties.resources
     definition: io.k8s.api.core.v1.ResourceRequirements
-  - property: tolerations
+  - property: master.properties.tolerations
+    definition: io.k8s.api.core.v1.Toleration
+    isArray: true
+  - property: client.properties.nodeAffinity
+    definition: io.k8s.api.core.v1.NodeAffinity
+  - property: client.properties.resources
+    definition: io.k8s.api.core.v1.ResourceRequirements
+  - property: client.properties.tolerations
+    definition: io.k8s.api.core.v1.Toleration
+    isArray: true
+  - property: data.properties.nodeAffinity
+    definition: io.k8s.api.core.v1.NodeAffinity
+  - property: data.properties.resources
+    definition: io.k8s.api.core.v1.ResourceRequirements
+  - property: data.properties.tolerations
     definition: io.k8s.api.core.v1.Toleration
     isArray: true
 properties:
@@ -17,10 +31,10 @@ properties:
       type: string
   clusterName:
     type: string
-  replicas:
-    type: integer
-  opensearchJavaOpts:
-    type: string
+  config:
+    type: object
+    additionalProperties:
+      type: string
   plugins:
     type: object
     properties:
@@ -42,53 +56,63 @@ properties:
           type: string
       requires:
         - secretName
-  config:
+  master:
     type: object
-    additionalProperties:
-      type: string
-  persistence:
-    type: object
-    properties:
-      storageClass:
+    properties: &common
+      replicas:
+        type: integer
+      opensearchJavaOpts:
         type: string
-        nullable: true
-      size:
+      persistence:
+        type: object
+        properties:
+          storageClass:
+            type: string
+            nullable: true
+          size:
+            type: string
+        required:
+          - size
+      antiAffinityTopologyKey:
         type: string
-    required:
-      - size
-  antiAffinityTopologyKey:
-    type: string
-  antiAffinity:
-    type: string
-  nodeSelector:
-    type: object
-    additionalProperties:
-      type: string
-  ingress:
-    type: object
-    properties:
-      enabled:
-        type: boolean
-      ingressClassName:
+      antiAffinity:
         type: string
-      annotations:
+      nodeSelector:
         type: object
         additionalProperties:
           type: string
-      path:
-        type: string
-      hosts:
-        type: array
-        items:
-          type: string
-      tls:
-        type: array
-        items:
-          type: object
-          properties:
-            secretName:
+  client:
+    type: object
+    properties:
+      <<: *common
+      ingress:
+        type: object
+        properties:
+          enabled:
+            type: boolean
+          ingressClassName:
+            type: string
+          annotations:
+            type: object
+            additionalProperties:
               type: string
-            hosts:
-              type: array
-              items:
-                type: string
+          path:
+            type: string
+          hosts:
+            type: array
+            items:
+              type: string
+          tls:
+            type: array
+            items:
+              type: object
+              properties:
+                secretName:
+                  type: string
+                hosts:
+                  type: array
+                  items:
+                    type: string
+  data:
+    type: object
+    properties: *common

@@ -37,4 +37,4 @@ while read -r property definition isArray; do
   fi
 done < <(yq4 '.kubernetesDefinitions.[] | (.property + " " + .definition + " " + .isArray // false)' "${package_path}/definition-gen.yaml")
 
-yq4 --prettyPrint --inplace 'sort_keys(.spec.versions[0].schema.openAPIV3Schema.properties.spec.properties)' "${definition_path}"
+yq4 --prettyPrint --inplace 'explode(..) | sort_keys(..)' "${definition_path}"

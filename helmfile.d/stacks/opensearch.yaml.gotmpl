@@ -28,13 +28,13 @@ templates:
     values:
       - values/opensearch/secrets.yaml.gotmpl
 
-  opensearch-master:
+  module-opensearch:
     disableValidationOnInstall: true
     inherit:
       - template: opensearch
     installed: {{ .Values | get "opensearch.enabled" false }}
     chart: charts/opensearch/opensearch
-    name: module-opensearch-master
+    name: module-opensearch
     needs:
       {{- if .Values | get "opensearch.sso.enabled" false }}
       - dex/dex
@@ -45,35 +45,7 @@ templates:
     values:
       - values/opensearch/common.yaml.gotmpl
       - values/opensearch/master.yaml.gotmpl
-    wait: true
-
-  opensearch-client:
-    inherit:
-      - template: opensearch
-    installed: {{ and ( .Values | get "opensearch.enabled" false) (.Values | get "opensearch.clientNode.dedicatedPods" false) }}
-    chart: charts/opensearch/opensearch
-    name: module-opensearch-client
-    needs:
-      - kube-system/service-cluster-np
-      - opensearch-system/module-opensearch-master
-      - opensearch-system/podsecuritypolicy
-    values:
-      - values/opensearch/common.yaml.gotmpl
       - values/opensearch/client.yaml.gotmpl
-    wait: true
-
-  opensearch-data:
-    inherit:
-      - template: opensearch
-    installed: {{ and ( .Values | get "opensearch.enabled" false) (.Values | get "opensearch.dataNode.dedicatedPods" false) }}
-    chart: charts/opensearch/opensearch
-    name: module-opensearch-data
-    needs:
-      - kube-system/service-cluster-np
-      - opensearch-system/module-opensearch-master
-      - opensearch-system/podsecuritypolicy
-    values:
-      - values/opensearch/common.yaml.gotmpl
       - values/opensearch/data.yaml.gotmpl
     wait: true
 
@@ -88,7 +60,7 @@ templates:
       - dex/dex
       {{- end }}
       - kube-system/service-cluster-np
-      - opensearch-system/module-opensearch-master
+      - opensearch-system/module-opensearch
       - opensearch-system/podsecuritypolicy
     values:
       - values/opensearch/dashboards.yaml.gotmpl
@@ -101,13 +73,7 @@ templates:
     version: 0.1.0
     name: opensearch-securityadmin
     needs:
-      - opensearch-system/module-opensearch-master
-      {{- if .Values | get "opensearch.clientNode.dedicatedPods" false }}
-      - opensearch-system/module-opensearch-client
-      {{- end }}
-      {{- if .Values | get "opensearch.dataNode.dedicatedPods" false }}
-      - opensearch-system/module-opensearch-data
-      {{- end }}
+      - opensearch-system/module-opensearch
     values:
       - values/opensearch/securityadmin.yaml.gotmpl
 
@@ -121,7 +87,7 @@ templates:
       {{- if .Values | get "opensearch.securityadmin.enabled" false }}
       - opensearch-system/opensearch-securityadmin
       {{- else }}
-      - opensearch-system/module-opensearch-master
+      - opensearch-system/module-opensearch
       {{- end }}
       - opensearch-system/opensearch-dashboards
     values:
