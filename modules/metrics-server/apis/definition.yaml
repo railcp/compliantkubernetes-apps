@@ -13,14 +13,11 @@ spec:
     plural: metricsservers
   versions:
     - name: v1alpha1
-      served: true
       referenceable: true
       schema:
         openAPIV3Schema:
-          type: object
           properties:
             spec:
-              type: object
               properties:
                 affinity:
                   description: Affinity is a group of affinity scheduling rules.
@@ -690,7 +687,6 @@ spec:
                       type: object
                   type: object
                 tolerations:
-                  type: array
                   items:
                     description: The pod this Toleration is attached to tolerates any taint that matches the triple <key,value,effect> using the matching operator <operator>.
                     properties:
@@ -711,3 +707,7 @@ spec:
                         description: Value is the taint value the toleration matches to. If the operator is Exists, the value should be empty, otherwise just a regular string.
                         type: string
                     type: object
+                  type: array
+              type: object
+          type: object
+      served: true
