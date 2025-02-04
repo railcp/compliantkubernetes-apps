@@ -9,6 +9,8 @@ templates:
       app: crossplane
     needs:
       - kube-system/admin-namespaces
+    values:
+      - values/crossplane.yaml.gotmpl
 
   crossplane-packages:
     disableValidationOnInstall: true

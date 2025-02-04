@@ -3,6 +3,8 @@ kind: Composition
 metadata:
   name: opensearch.modules.elastisys.com
 spec:
+  publishConnectionDetailsWithStoreConfigRef:
+    name: wc
   compositeTypeRef:
     apiVersion: modules.elastisys.com/v1alpha1
     kind: OpenSearch
@@ -140,6 +142,19 @@ spec:
               spec:
                 providerConfigRef:
                   name: helm
+                writeConnectionSecretToRef:
+                  namespace: opensearch-system
+                  name: welkin.modules.capability.log-writetwo
+                publishConnectionDetailsTo:
+                  name: welkin.modules.capability.log-writethree
+                  configRef:
+                    name: wc
+                connectionDetails:
+                  - apiVersion: networking.k8s.io/v1
+                    kind: Ingress
+                    namespace: opensearch-system
+                    fieldPath: spec.rules[0].host
+                    toConnectionSecretKey: host
                 forProvider:
                   wait: true
                   namespace: opensearch-system
@@ -196,6 +211,15 @@ spec:
                           runAsNonRoot: false
                           runAsUser: 0
             patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.clusterName
+                toFieldPath: spec.connectionDetails[0].name
+                transforms:
+                  - type: string
+                    string:
+                      type: Format
+                      fmt: "%s-client"
+
               - type: FromCompositeFieldPath
                 fromFieldPath: spec.clusterName
                 toFieldPath: spec.forProvider.values.clusterName

@@ -36,6 +36,7 @@ templates:
     chart: charts/opensearch/opensearch
     name: module-opensearch
     needs:
+      - crossplane-system/crossplane-packages
       {{- if .Values | get "opensearch.sso.enabled" false }}
       - dex/dex
       {{- end }}
