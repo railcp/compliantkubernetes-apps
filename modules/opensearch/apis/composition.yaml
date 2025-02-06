@@ -134,6 +134,10 @@ spec:
                 fromFieldPath: spec.master.tolerations
                 toFieldPath: spec.forProvider.values.tolerations
           - name: opensearch-client
+            connectionDetails:
+              - name: host
+                type: FromConnectionSecretKey
+                fromConnectionSecretKey: host
             base:
               apiVersion: helm.crossplane.io/v1beta1
               kind: Release
@@ -145,10 +149,6 @@ spec:
                 writeConnectionSecretToRef:
                   namespace: opensearch-system
                   name: welkin.modules.capability.log-writetwo
-                publishConnectionDetailsTo:
-                  name: welkin.modules.capability.log-writethree
-                  configRef:
-                    name: wc
                 connectionDetails:
                   - apiVersion: networking.k8s.io/v1
                     kind: Ingress
