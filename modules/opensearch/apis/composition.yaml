@@ -147,8 +147,8 @@ spec:
                 providerConfigRef:
                   name: helm
                 writeConnectionSecretToRef:
-                  namespace: opensearch-system
-                  name: welkin.modules.capability.log-writetwo
+                  namespace: crossplane-system
+                  name: welkin.modules.capability.log-write
                 connectionDetails:
                   - apiVersion: networking.k8s.io/v1
                     kind: Ingress
@@ -392,3 +392,40 @@ spec:
               - type: FromCompositeFieldPath
                 fromFieldPath: spec.data.tolerations
                 toFieldPath: spec.forProvider.values.tolerations
+          - name: capability-log-write
+            base:
+              apiVersion: kubernetes.crossplane.io/v1alpha2
+              kind: Object
+              spec:
+                providerConfigRef:
+                  name: kubernetes
+                forProvider:
+                  manifest:
+                    apiVersion: apiextensions.crossplane.io/v1beta1
+                    kind: EnvironmentConfig
+                    metadata:
+                      name: welkin.modules.capability.log-write
+                    data:
+                      secretRef:
+                        namespace: crossplane-system
+                        name: welkin.modules.capability.log-write
+          - name: capability-log-write-wc
+            base:
+              apiVersion: kubernetes.crossplane.io/v1alpha2
+              kind: Object
+              spec:
+                providerConfigRef:
+                  name: kubernetes-wc
+                forProvider:
+                  manifest:
+                    apiVersion: apiextensions.crossplane.io/v1beta1
+                    kind: EnvironmentConfig
+                    metadata:
+                      name: welkin.modules.capability.log-write
+                    data:
+                      secretRef:
+                        namespace: crossplane-system # TODO: Could be fetched from storeconfig.spec.defaultScope
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.publishConnectionDetailsTo.name # TODO: or metadata.uid
+                toFieldPath: spec.forProvider.manifest.data.secretRef.name

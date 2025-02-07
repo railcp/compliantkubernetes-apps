@@ -9,6 +9,6 @@ spec:
     auth:
       source: Secret
       secretRef:
-        namespace: capi-cluster
-        name: foo-wc-kubeconfig
+        namespace: crossplane-system
+        name: wc-kubeconfig
         key: value
