@@ -8,8 +8,8 @@ here="$(dirname "$(readlink -f "$0")")"
 command="${1}"
 helmfile_environment="${2}"
 package_name="${3}"
-module_release_name="${4}"
-old_release_name="${5:-"${module_release_name}"}"
+module_release_name="${4:-"module-${package_name}"}"
+old_release_name="${5:-"${module_release_name#"module-"}"}"
 
 package_path="${here}/../${package_name}"
 helmfile_path="${here}/../../helmfile.d"
@@ -28,7 +28,9 @@ helm_template_main() {
 
 render() {
   helm_template |
-    crossplane render /dev/stdin "${package_path}/apis/composition.yaml" "${here}/functions.yaml" |
+    crossplane render /dev/stdin "${package_path}/apis/composition.yaml" "${here}/render-resources/functions.yaml" \
+      --extra-resources "${here}/render-resources/extra-resources.yaml" \
+      --include-context |
     yq4 'select(.kind == "Release" and .metadata.name == "'"${old_release_name}"'")'
 }
 

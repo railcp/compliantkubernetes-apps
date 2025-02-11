@@ -69,7 +69,7 @@ releases:
   - inherit: [ template: fluentd-networkpolicy ]
   - inherit: [ template: fluentd-podsecuritypolicy ]
   - inherit: [ template: fluentd-aggregator ]
-  - inherit: [ template: fluentd-forwarder ]
+  - inherit: [ template: module-fluentd-forwarder ]
   - inherit: [ template: fluentd-user ]
   - inherit: [ template: log-manager ]
 

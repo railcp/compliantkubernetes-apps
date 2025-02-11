@@ -1,0 +1,11 @@
+apiVersion: apiextensions.crossplane.io/v1beta1
+kind: EnvironmentConfig
+metadata:
+  name: welkin.modules.capability.log-write
+data:
+  host: opensearch.ops.my-cluster.dev-ck8s.com
+  username: fluentd
+  password:
+    secretKeyRef:
+      name: welkin.modules.capability.log-write
+      key: password

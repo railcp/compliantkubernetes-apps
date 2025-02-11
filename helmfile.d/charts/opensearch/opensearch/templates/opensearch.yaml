@@ -1,7 +1,7 @@
 apiVersion: modules.elastisys.com/v1alpha1
 kind: OpenSearch
 metadata:
-  name: {{ .Release.Name | trimPrefix "module-" }}
+  name: opensearch
 spec:
   clusterName: {{ .Values.clusterName }}
   {{ with .Values.config -}}
