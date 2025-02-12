@@ -46,6 +46,7 @@ spec:
                     version: "13.10.0"
                   values:
                     elasticsearch:
+                      setOutputHostEnvVar: false
                       outputType: "opensearch"
                       logLevel: "info"
                       scheme: https
@@ -56,6 +57,8 @@ spec:
                         enabled: true
                         password: null
                     secret:
+                    - name: OUTPUT_HOSTS
+                    - name: OUTPUT_USER
                     - name: OUTPUT_PASSWORD
                     nameOverride: fluentd
                     image:
@@ -120,17 +123,23 @@ spec:
             patches:
               # log-write capability
               - type: FromEnvironmentFieldPath
-                fromFieldPath: host
-                toFieldPath: spec.forProvider.values.elasticsearch.hosts[0]
-              - type: FromEnvironmentFieldPath
-                fromFieldPath: username
-                toFieldPath: spec.forProvider.values.elasticsearch.auth.user
-              - type: FromEnvironmentFieldPath
-                fromFieldPath: password.secretKeyRef.name
+                fromFieldPath: host.secretKeyRef.name
                 toFieldPath: spec.forProvider.values.secret[0].secret_name
               - type: FromEnvironmentFieldPath
-                fromFieldPath: password.secretKeyRef.key
+                fromFieldPath: host.secretKeyRef.key
                 toFieldPath: spec.forProvider.values.secret[0].secret_key
+              - type: FromEnvironmentFieldPath
+                fromFieldPath: username.secretKeyRef.name
+                toFieldPath: spec.forProvider.values.secret[1].secret_name
+              - type: FromEnvironmentFieldPath
+                fromFieldPath: username.secretKeyRef.key
+                toFieldPath: spec.forProvider.values.secret[1].secret_key
+              - type: FromEnvironmentFieldPath
+                fromFieldPath: password.secretKeyRef.name
+                toFieldPath: spec.forProvider.values.secret[2].secret_name
+              - type: FromEnvironmentFieldPath
+                fromFieldPath: password.secretKeyRef.key
+                toFieldPath: spec.forProvider.values.secret[2].secret_key
               # spec
               - type: FromCompositeFieldPath
                 fromFieldPath: spec.affinity

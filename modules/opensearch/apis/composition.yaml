@@ -3,8 +3,9 @@ kind: Composition
 metadata:
   name: opensearch.modules.elastisys.com
 spec:
+  # writeConnectionSecretsToNamespace: fluentd-system # Local
   publishConnectionDetailsWithStoreConfigRef:
-    name: wc
+    name: wc # Remote
   compositeTypeRef:
     apiVersion: modules.elastisys.com/v1alpha1
     kind: OpenSearch
@@ -147,8 +148,8 @@ spec:
                 providerConfigRef:
                   name: helm
                 writeConnectionSecretToRef:
-                  namespace: crossplane-system
-                  name: welkin.modules.capability.log-write
+                  namespace: opensearch-system
+                  name: welkin.modules.capability.log-write-host
                 connectionDetails:
                   - apiVersion: networking.k8s.io/v1
                     kind: Ingress
@@ -392,7 +393,47 @@ spec:
               - type: FromCompositeFieldPath
                 fromFieldPath: spec.data.tolerations
                 toFieldPath: spec.forProvider.values.tolerations
-          - name: capability-log-write
+          - name: capability-log-write-secret
+            connectionDetails:
+              - name: username
+                type: FromConnectionSecretKey
+                fromConnectionSecretKey: username
+              - name: password
+                type: FromConnectionSecretKey
+                fromConnectionSecretKey: password
+            base:
+              apiVersion: kubernetes.crossplane.io/v1alpha2
+              kind: Object
+              spec:
+                providerConfigRef:
+                  name: kubernetes
+                writeConnectionSecretToRef:
+                  namespace: opensearch-system
+                  name: welkin.modules.capability.log-write-username-password
+                connectionDetails:
+                  - apiVersion: v1
+                    kind: Secret
+                    name: fluentd-credentials
+                    namespace: opensearch-system
+                    fieldPath: data.username
+                    toConnectionSecretKey: username
+                  - apiVersion: v1
+                    kind: Secret
+                    name: fluentd-credentials
+                    namespace: opensearch-system
+                    fieldPath: data.password
+                    toConnectionSecretKey: password
+                forProvider:
+                  manifest:
+                    apiVersion: v1
+                    kind: Secret
+                    metadata:
+                      name: fluentd-credentials
+                      namespace: opensearch-system
+                    data:
+                      username: Zmx1ZW50ZA==
+                      password: Zm9vb28=
+          - name: capability-log-write-env
             base:
               apiVersion: kubernetes.crossplane.io/v1alpha2
               kind: Object
@@ -406,10 +447,19 @@ spec:
                     metadata:
                       name: welkin.modules.capability.log-write
                     data:
-                      secretRef:
-                        namespace: crossplane-system
-                        name: welkin.modules.capability.log-write
-          - name: capability-log-write-wc
+                      host:
+                        secretKeyRef:
+                          name: welkin.modules.capability.log-write
+                          key: host
+                      username:
+                        secretKeyRef:
+                          name: welkin.modules.capability.log-write
+                          key: username
+                      password:
+                        secretKeyRef:
+                          name: welkin.modules.capability.log-write
+                          key: password
+          - name: capability-log-write-env-wc
             base:
               apiVersion: kubernetes.crossplane.io/v1alpha2
               kind: Object
@@ -423,9 +473,22 @@ spec:
                     metadata:
                       name: welkin.modules.capability.log-write
                     data:
-                      secretRef:
-                        namespace: crossplane-system # TODO: Could be fetched from storeconfig.spec.defaultScope
+                      host:
+                        secretKeyRef:
+                          key: host
+                      username:
+                        secretKeyRef:
+                          key: username
+                      password:
+                        secretKeyRef:
+                          key: password
             patches:
               - type: FromCompositeFieldPath
                 fromFieldPath: spec.publishConnectionDetailsTo.name # TODO: or metadata.uid
-                toFieldPath: spec.forProvider.manifest.data.secretRef.name
+                toFieldPath: spec.forProvider.manifest.data.host.secretKeyRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.publishConnectionDetailsTo.name # TODO: or metadata.uid
+                toFieldPath: spec.forProvider.manifest.data.username.secretKeyRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.publishConnectionDetailsTo.name # TODO: or metadata.uid
+                toFieldPath: spec.forProvider.manifest.data.password.secretKeyRef.name

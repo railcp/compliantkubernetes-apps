@@ -17,6 +17,16 @@ spec:
   serviceAccountTemplate:
     metadata:
       name: provider-kubernetes
+  deploymentTemplate:
+    spec:
+      selector: {}
+      template:
+        spec:
+          containers:
+            - name: package-runtime
+              args:
+                - --debug
+                - --sanitize-secrets
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding

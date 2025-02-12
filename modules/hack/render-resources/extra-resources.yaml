@@ -3,8 +3,14 @@ kind: EnvironmentConfig
 metadata:
   name: welkin.modules.capability.log-write
 data:
-  host: opensearch.ops.my-cluster.dev-ck8s.com
-  username: fluentd
+  host:
+    secretKeyRef:
+      name: welkin.modules.capability.log-write
+      key: host
+  username:
+    secretKeyRef:
+      name: welkin.modules.capability.log-write
+      key: username
   password:
     secretKeyRef:
       name: welkin.modules.capability.log-write
