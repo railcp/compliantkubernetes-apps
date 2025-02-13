@@ -28,7 +28,7 @@ spec:
         apiVersion: pt.fn.crossplane.io/v1beta1
         kind: Resources
         resources:
-          - name: res
+          - name: fluentd-forwarder
             base:
               apiVersion: helm.crossplane.io/v1beta1
               kind: Release
@@ -150,6 +150,7 @@ spec:
               - type: FromCompositeFieldPath
                 fromFieldPath: spec.tolerations
                 toFieldPath: spec.forProvider.values.tolerations
+              # TODO: Lazy, real implementation should be stricter
               - type: FromCompositeFieldPath
                 fromFieldPath: spec.buffer
                 toFieldPath: spec.forProvider.values.elasticsearch.buffer

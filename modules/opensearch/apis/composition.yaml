@@ -3,7 +3,7 @@ kind: Composition
 metadata:
   name: opensearch.modules.elastisys.com
 spec:
-  # writeConnectionSecretsToNamespace: fluentd-system # Local
+  writeConnectionSecretsToNamespace: fluentd-system # Local
   publishConnectionDetailsWithStoreConfigRef:
     name: wc # Remote
   compositeTypeRef:
@@ -449,16 +449,23 @@ spec:
                     data:
                       host:
                         secretKeyRef:
-                          name: welkin.modules.capability.log-write
                           key: host
                       username:
                         secretKeyRef:
-                          name: welkin.modules.capability.log-write
                           key: username
                       password:
                         secretKeyRef:
-                          name: welkin.modules.capability.log-write
                           key: password
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.writeConnectionSecretToRef.name # TODO: or metadata.uid
+                toFieldPath: spec.forProvider.manifest.data.host.secretKeyRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.writeConnectionSecretToRef.name # TODO: or metadata.uid
+                toFieldPath: spec.forProvider.manifest.data.username.secretKeyRef.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.writeConnectionSecretToRef.name # TODO: or metadata.uid
+                toFieldPath: spec.forProvider.manifest.data.password.secretKeyRef.name
           - name: capability-log-write-env-wc
             base:
               apiVersion: kubernetes.crossplane.io/v1alpha2
