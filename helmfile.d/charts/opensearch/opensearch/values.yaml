@@ -1,0 +1,3 @@
+environmentName: my-env
+clusters: [mc]
+clusterName: opensearch

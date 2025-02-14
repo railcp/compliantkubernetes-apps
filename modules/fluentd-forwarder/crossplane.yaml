@@ -1,7 +1,7 @@
 apiVersion: meta.pkg.crossplane.io/v1
 kind: Configuration
 metadata:
-  name: opensearch
+  name: fluentd-forwarder
   annotations:
     meta.crossplane.io/maintainer: Elastisys <support@elastisys.com>
     meta.crossplane.io/source: github.com/elastisys/compliantkubernetes-apps
@@ -16,7 +16,7 @@ spec:
   dependsOn:
     - provider: xpkg.upbound.io/crossplane-contrib/provider-helm
       version: ">=v0.19.0"
-    - provider: xpkg.upbound.io/crossplane-contrib/provider-kubernetes
-      version: ">=v0.16.2"
     - function: xpkg.upbound.io/crossplane-contrib/function-patch-and-transform
       version: ">=v0.7.0"
+    - function: xpkg.upbound.io/crossplane-contrib/function-environment-configs
+      version: ">=v0.2.0"

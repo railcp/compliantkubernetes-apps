@@ -3,9 +3,9 @@ kind: Composition
 metadata:
   name: opensearch.modules.elastisys.com
 spec:
-  writeConnectionSecretsToNamespace: fluentd-system # Local
+  writeConnectionSecretsToNamespace: fluentd-system
   publishConnectionDetailsWithStoreConfigRef:
-    name: wc # Remote
+    name: fluentd-wc
   compositeTypeRef:
     apiVersion: modules.elastisys.com/v1alpha1
     kind: OpenSearch

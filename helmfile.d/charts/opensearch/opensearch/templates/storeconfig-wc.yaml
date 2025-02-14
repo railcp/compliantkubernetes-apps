@@ -1,7 +1,9 @@
+{{- range .Values.clusters }}
+---
 apiVersion: secrets.crossplane.io/v1alpha1
 kind: StoreConfig
 metadata:
-  name: wc
+  name: fluentd-{{ . }}
 spec:
   type: Kubernetes
   defaultScope: fluentd-system
@@ -9,6 +11,7 @@ spec:
     auth:
       source: Secret
       secretRef:
-        namespace: crossplane-system
-        name: wc-kubeconfig
+        namespace: capi-clusters
+        name: {{ $.Values.environmentName }}-{{ . }}-kubeconfig
         key: value
+{{- end }}

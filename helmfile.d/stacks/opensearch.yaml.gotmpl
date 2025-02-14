@@ -36,7 +36,7 @@ templates:
     chart: charts/opensearch/opensearch
     name: module-opensearch
     needs:
-      - crossplane-system/crossplane-packages
+      - crossplane-system/crossplane-provider-configs
       {{- if .Values | get "opensearch.sso.enabled" false }}
       - dex/dex
       {{- end }}
@@ -44,6 +44,7 @@ templates:
       - opensearch-system/opensearch-secrets
       - opensearch-system/podsecuritypolicy
     values:
+      - values/opensearch/crossplane-store.yaml.gotmpl
       - values/opensearch/common.yaml.gotmpl
       - values/opensearch/master.yaml.gotmpl
       - values/opensearch/client.yaml.gotmpl
