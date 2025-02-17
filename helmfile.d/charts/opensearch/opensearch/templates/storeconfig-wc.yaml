@@ -11,7 +11,7 @@ spec:
     auth:
       source: Secret
       secretRef:
-        namespace: capi-clusters
+        namespace: capi-cluster
         name: {{ $.Values.environmentName }}-{{ . }}-kubeconfig
         key: value
 {{- end }}
