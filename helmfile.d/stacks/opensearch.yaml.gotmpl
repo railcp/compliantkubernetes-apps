@@ -45,6 +45,7 @@ templates:
       - opensearch-system/podsecuritypolicy
     values:
       - values/opensearch/crossplane-store.yaml.gotmpl
+      - values/opensearch/fluentd-password.yaml.gotmpl
       - values/opensearch/common.yaml.gotmpl
       - values/opensearch/master.yaml.gotmpl
       - values/opensearch/client.yaml.gotmpl

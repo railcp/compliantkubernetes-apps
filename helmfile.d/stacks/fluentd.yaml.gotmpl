@@ -68,6 +68,7 @@ templates:
     chart: charts/fluentd-forwarder
     name: module-fluentd-forwarder
     needs:
+      - crossplane-system/crossplane-provider-configs
       - fluentd-system/networkpolicy
       - fluentd-system/podsecuritypolicy
       - monitoring/kube-prometheus-stack # creates servicemonitors and prometheusrules
