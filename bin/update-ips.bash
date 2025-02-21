@@ -92,11 +92,10 @@ yq_eval() {
 
   if ${dry_run}; then
     log_warning "Diff found for ${config_option} in ${config_filename} (diff shows actions needed to be up to date)"
+    has_diff=$((has_diff + 1))
   else
     yq4 -i "${expression}" "${config_file}"
   fi
-
-  has_diff=$((has_diff + 1))
 }
 
 # Determine if Swift is enabled in the configuration.
