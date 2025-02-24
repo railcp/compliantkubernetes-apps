@@ -1,0 +1,5 @@
+apiVersion: capability.elastisys.com/v1alpha1
+kind: LogWrite
+metadata:
+  name: log-write
+spec: {}
