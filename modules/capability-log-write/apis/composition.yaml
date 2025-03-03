@@ -8,7 +8,7 @@ spec:
     kind: LogWrite
   mode: Pipeline
   pipeline:
-    - step: pull-extra-resources
+    - step: local-discovery
       functionRef:
         name: function-extra-resources
       input:
@@ -18,16 +18,16 @@ spec:
           extraResources:
             - apiVersion: v1
               kind: Secret
-              into: Receivers
+              into: receivers
               type: Selector
               selector:
                 maxMatch: 2
-                minMatch: 1
+                minMatch: 0
                 matchLabels:
                   - key: logwrites.capabilities.elastisys.com
                     type: Value
                     value: ""
-    - step: go-templating
+    - step: remote-discovery
       functionRef:
         name: function-go-templating
       input:
@@ -36,7 +36,37 @@ spec:
         source: Inline
         inline:
           template: |
-            {{- $Receivers := index (index .context "apiextensions.crossplane.io/extra-resources") "Receivers" }}
+            {{- range $_, $cluster := .observed.composite.resource.spec.clusters }}
+            ---
+            apiVersion: kubernetes.crossplane.io/v1alpha2
+            kind: Object
+            metadata:
+              name: remote-environment-config-receivers-{{ $cluster }}
+              annotations:
+                gotemplating.fn.crossplane.io/composition-resource-name: remote-environment-config-receivers-{{ $cluster }}
+                gotemplating.fn.crossplane.io/ready: "True"
+            spec:
+              providerConfigRef:
+                name: kubernetes-{{ $cluster }}
+              managementPolicies: [Observe]
+              watch: true
+              forProvider:
+                manifest:
+                  apiVersion: apiextensions.crossplane.io/v1beta1
+                  kind: EnvironmentConfig
+                  metadata:
+                    name: receivers.logwrites.capabilities.elastisys.com
+            {{- end }}
+    - step: local-environment-config-receivers
+      functionRef:
+        name: function-go-templating
+      input:
+        apiVersion: gotemplating.fn.crossplane.io/v1beta1
+        kind: GoTemplate
+        source: Inline
+        inline:
+          template: |
+            {{- $localReceivers := index (index .context "apiextensions.crossplane.io/extra-resources") "receivers" }}
             apiVersion: apiextensions.crossplane.io/v1beta1
             kind: EnvironmentConfig
             metadata:
@@ -45,8 +75,19 @@ spec:
                 gotemplating.fn.crossplane.io/composition-resource-name: environment-config-receivers
                 gotemplating.fn.crossplane.io/ready: "True"
             data:
-              refs:
-                {{- range $_, $r := $Receivers }}
+              local:
+                {{- range $_, $r := $localReceivers }}
                 - name: {{ $r.metadata.name }}
                   namespace: {{ $r.metadata.namespace }}
+                {{- end }}
+              remote:
+                {{- if hasKey .observed "resources" }}
+                {{- range $_, $cluster := .observed.composite.resource.spec.clusters }}
+                {{- with index $.observed.resources (print "remote-environment-config-receivers-" $cluster) }}
+                {{- with .resource.status.atProvider.manifest }}
+                {{ $cluster }}:
+                  {{ toYaml .data.local | nindent 4 }}
+                {{- end }}
+                {{- end }}
+                {{- end }}
                 {{- end }}
