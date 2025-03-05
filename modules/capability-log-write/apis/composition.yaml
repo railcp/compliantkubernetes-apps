@@ -8,7 +8,7 @@ spec:
     kind: LogWrite
   mode: Pipeline
   pipeline:
-    - step: local-discovery
+    - step: discovery
       functionRef:
         name: function-extra-resources
       input:
@@ -16,9 +16,20 @@ spec:
         kind: Input
         spec:
           extraResources:
+            - apiVersion: modules.elastisys.com/v1alpha1
+              kind: OpenSearch
+              into: producers
+              type: Selector
+              selector:
+                maxMatch: 1
+                minMatch: 0
+                matchLabels:
+                  - key: logwrites.capabilities.elastisys.com
+                    type: Value
+                    value: ""
             - apiVersion: v1
               kind: Secret
-              into: receivers
+              into: consumers
               type: Selector
               selector:
                 maxMatch: 2
@@ -27,7 +38,30 @@ spec:
                   - key: logwrites.capabilities.elastisys.com
                     type: Value
                     value: ""
-    - step: remote-discovery
+    - step: consumers-environment-config
+      functionRef:
+        name: function-go-templating
+      input:
+        apiVersion: gotemplating.fn.crossplane.io/v1beta1
+        kind: GoTemplate
+        source: Inline
+        inline:
+          template: |
+            {{- $localConsumers := index (index .context "apiextensions.crossplane.io/extra-resources") "consumers" }}
+            apiVersion: apiextensions.crossplane.io/v1beta1
+            kind: EnvironmentConfig
+            metadata:
+              name: consumers.logwrites.capabilities.elastisys.com
+              annotations:
+                gotemplating.fn.crossplane.io/composition-resource-name: environment-config-consumers
+                gotemplating.fn.crossplane.io/ready: "True"
+            data:
+              secretRefs:
+                {{- range $_, $r := $localConsumers }}
+                - name: {{ $r.metadata.name }}
+                  namespace: {{ $r.metadata.namespace }}
+                {{- end }}
+    - step: remote-consumer-discovery
       functionRef:
         name: function-go-templating
       input:
@@ -41,9 +75,9 @@ spec:
             apiVersion: kubernetes.crossplane.io/v1alpha2
             kind: Object
             metadata:
-              name: remote-environment-config-receivers-{{ $cluster }}
+              name: remote-consumers-environment-config-{{ $cluster }}
               annotations:
-                gotemplating.fn.crossplane.io/composition-resource-name: remote-environment-config-receivers-{{ $cluster }}
+                gotemplating.fn.crossplane.io/composition-resource-name: remote-consumers-environment-config-{{ $cluster }}
                 gotemplating.fn.crossplane.io/ready: "True"
             spec:
               providerConfigRef:
@@ -55,9 +89,9 @@ spec:
                   apiVersion: apiextensions.crossplane.io/v1beta1
                   kind: EnvironmentConfig
                   metadata:
-                    name: receivers.logwrites.capabilities.elastisys.com
+                    name: consumers.logwrites.capabilities.elastisys.com
             {{- end }}
-    - step: local-environment-config-receivers
+    - step: patch-consumer-secrets
       functionRef:
         name: function-go-templating
       input:
@@ -66,28 +100,94 @@ spec:
         source: Inline
         inline:
           template: |
-            {{- $localReceivers := index (index .context "apiextensions.crossplane.io/extra-resources") "receivers" }}
-            apiVersion: apiextensions.crossplane.io/v1beta1
-            kind: EnvironmentConfig
+            {{- $producers := index (index .context "apiextensions.crossplane.io/extra-resources") "producers" }}
+            {{- if and $producers (eq (len $producers) 1) }}
+            {{- $producer := index $producers 0 }}
+            {{- $localConsumers := index (index .context "apiextensions.crossplane.io/extra-resources") "consumers" }}
+            {{- range $_, $r := $localConsumers }}
+            ---
+            apiVersion: kubernetes.crossplane.io/v1alpha2
+            kind: Object
             metadata:
-              name: receivers.logwrites.capabilities.elastisys.com
+              name: capability-log-write-patch-local-{{ $r.metadata.namespace }}-{{ $r.metadata.name }}
               annotations:
-                gotemplating.fn.crossplane.io/composition-resource-name: environment-config-receivers
-                gotemplating.fn.crossplane.io/ready: "True"
-            data:
-              local:
-                {{- range $_, $r := $localReceivers }}
-                - name: {{ $r.metadata.name }}
-                  namespace: {{ $r.metadata.namespace }}
-                {{- end }}
-              remote:
-                {{- if hasKey .observed "resources" }}
-                {{- range $_, $cluster := .observed.composite.resource.spec.clusters }}
-                {{- with index $.observed.resources (print "remote-environment-config-receivers-" $cluster) }}
-                {{- with .resource.status.atProvider.manifest }}
-                {{ $cluster }}:
-                  {{ toYaml .data.local | nindent 4 }}
-                {{- end }}
-                {{- end }}
-                {{- end }}
-                {{- end }}
+                gotemplating.fn.crossplane.io/composition-resource-name: capability-log-write-patch-local-{{ $r.metadata.namespace }}-{{ $r.metadata.name }}
+            spec:
+              managementPolicies: [Observe, Update]
+              watch: true
+              providerConfigRef:
+                name: kubernetes
+              forProvider:
+                manifest:
+                  apiVersion: v1
+                  kind: Secret
+                  metadata:
+                    name: {{ $r.metadata.name }}
+                    namespace: {{ $r.metadata.namespace }}
+              references:
+              - patchesFrom:
+                  apiVersion: v1
+                  kind: Secret
+                  namespace: opensearch-system
+                  name: {{ $producer.metadata.uid }}
+                  fieldPath: data.host
+              - patchesFrom:
+                  apiVersion: v1
+                  kind: Secret
+                  namespace: opensearch-system
+                  name: {{ $producer.metadata.uid }}
+                  fieldPath: data.username
+              - patchesFrom:
+                  apiVersion: v1
+                  kind: Secret
+                  namespace: opensearch-system
+                  name: {{ $producer.metadata.uid }}
+                  fieldPath: data.password
+            {{- end }}
+            {{- if hasKey .observed "resources" }}
+            {{- range $_, $cluster := .observed.composite.resource.spec.clusters }}
+            {{- with index $.observed.resources (print "remote-consumers-environment-config-" $cluster) }}
+            {{- range $_, $r := .resource.status.atProvider.manifest.data.secretRefs }}
+            ---
+            apiVersion: kubernetes.crossplane.io/v1alpha2
+            kind: Object
+            metadata:
+              name: capability-log-write-patch-remote-{{ $cluster }}-{{ $r.namespace }}-{{ $r.name }}
+              annotations:
+                gotemplating.fn.crossplane.io/composition-resource-name: capability-log-write-patch-remote-{{ $cluster }}-{{ $r.namespace }}-{{ $r.name }}
+            spec:
+              managementPolicies: [Observe, Update]
+              watch: true
+              providerConfigRef:
+                name: kubernetes-{{ $cluster }}
+              forProvider:
+                manifest:
+                  apiVersion: v1
+                  kind: Secret
+                  metadata:
+                    name: {{ $r.name }}
+                    namespace: {{ $r.namespace }}
+              references:
+              - patchesFrom:
+                  apiVersion: v1
+                  kind: Secret
+                  namespace: opensearch-system
+                  name: {{ $producer.metadata.uid }}
+                  fieldPath: data.host
+              - patchesFrom:
+                  apiVersion: v1
+                  kind: Secret
+                  namespace: opensearch-system
+                  name: {{ $producer.metadata.uid }}
+                  fieldPath: data.username
+              - patchesFrom:
+                  apiVersion: v1
+                  kind: Secret
+                  namespace: opensearch-system
+                  name: {{ $producer.metadata.uid }}
+                  fieldPath: data.password
+            {{- end }}
+            {{- end }}
+            {{- end }}
+            {{- end }}
+            {{- end }}
