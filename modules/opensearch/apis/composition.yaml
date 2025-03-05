@@ -9,19 +9,6 @@ spec:
     kind: OpenSearch
   mode: Pipeline
   pipeline:
-    - step: environmentConfigs
-      functionRef:
-        name: function-environment-configs
-      input:
-        apiVersion: environmentconfigs.fn.crossplane.io/v1beta1
-        kind: Input
-        spec:
-          policy:
-            resolution: Optional
-          environmentConfigs:
-            - type: Reference
-              ref:
-                name: receivers.logwrites.capabilities.elastisys.com
     - step: patch-and-transform
       functionRef:
         name: function-patch-and-transform
