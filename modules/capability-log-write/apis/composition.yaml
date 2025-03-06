@@ -191,3 +191,6 @@ spec:
             {{- end }}
             {{- end }}
             {{- end }}
+    - step: detect-readiness
+      functionRef:
+        name: function-auto-ready

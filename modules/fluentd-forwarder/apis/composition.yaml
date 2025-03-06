@@ -22,8 +22,9 @@ spec:
             metadata:
               name: opensearch-credentials
               annotations:
-                gotemplating.fn.crossplane.io/composition-resource-name: capability-log-write-secret
+                gotemplating.fn.crossplane.io/composition-resource-name: opensearch-credentials
             spec:
+              watch: true
               managementPolicies: [Observe, Create, Delete]
               providerConfigRef:
                 name: kubernetes
@@ -32,18 +33,18 @@ spec:
                   apiVersion: v1
                   kind: Secret
                   metadata:
-                    name: foo
+                    name: opensearch-credentials
                     namespace: fluentd-system
                     labels:
                       logwrites.capabilities.elastisys.com: ""
             ---
             {{- $secretKeys := list }}
             {{- if hasKey .observed "resources" }}
-            {{- with index .observed.resources "capability-log-write-secret" .resource.status.atProvider.manifest.data }}
-            {{- range . }}{{ append $secretKeys .name }}{{ end }}
+            {{- with index .observed.resources "opensearch-credentials" }}
+            {{- range $k, $_ := .resource.status.atProvider.manifest.data }}{{ $secretKeys = append $secretKeys $k }}{{ end }}
             {{- end }}
             {{- end }}
-            {{- $opensearchEnabled := if and (has "host" $secretKeys) (has "username" $secretKeys) (has "password" $secretKeys) }}
+            {{- $opensearchEnabled := and (has "host" $secretKeys) (has "username" $secretKeys) (has "password" $secretKeys) }}
             apiVersion: helm.crossplane.io/v1beta1
             kind: Release
             metadata:
