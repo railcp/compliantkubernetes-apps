@@ -145,12 +145,6 @@ As with all scripts in this repository `CK8S_CONFIG_PATH` is expected to be set.
     ./migration/v0.45/apply/20-gatekeeper-crds.sh execute
     ```
 
-1. If you have an older version of gpu-operator installed, upgrade nvidia-gpu-operator
-
-    ```bash
-    ./migration/v0.45/apply/20-gpu-operator.sh execute
-    ```
-
 1. If you didn't have gpu-operator installed previously, but had `gpu-operator` namespace created, label the namespace:
 
    ```bash
@@ -159,7 +153,6 @@ As with all scripts in this repository `CK8S_CONFIG_PATH` is expected to be set.
    ```
 
 1. Upgrade applications:
-
     ```bash
     ./bin/ck8s apply {sc|wc}
     # or
