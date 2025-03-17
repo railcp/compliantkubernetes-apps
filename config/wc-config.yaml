@@ -400,3 +400,36 @@ gatekeeper:
 
 gpu:
   enabled: false
+  operator:
+    resources: {}
+    tolerations: []
+    affinity: {}
+  driver:
+    # use driver version 570.124.06 for supporting cluster running on Ubuntu 24.04.
+    version: "570.124.06"
+    env:
+      - name: NVIDIA_VISIBLE_DEVICES
+        value: all
+  nodeFeatureDiscovery:
+    worker:
+      resources: {}
+      tolerations:
+        - key: elastisys.io/node-type
+          operator: Equal
+          value: gpu
+          effect: NoSchedule
+      affinity: {}
+    controlPlane:
+      resources: {}
+      tolerations:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/control-plane
+          operator: Equal
+          value: ""
+      affinity: {}
+  daemonsets:
+    tolerations:
+      - key: elastisys.io/node-type
+        operator: Equal
+        value: gpu
+        effect: NoSchedule
