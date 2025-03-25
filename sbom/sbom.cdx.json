@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:b74f3749-3749-4833-aa4c-673ad303efce",
+  "serialNumber": "urn:uuid:83bd73d1-ab1a-4033-8ffd-4397525ade27",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-02-03T13:47:42Z",
+    "timestamp": "2026-02-03T13:49:08Z",
     "lifecycles": [
       {
         "phase": "build"
@@ -959,6 +959,37 @@
         "occurrences": [
           {
             "location": "helmfile.d/charts/grafana-label-enforcer"
+          }
+        ]
+      }
+    },
+    {
+      "bom-ref": "pkg:helm/grafana-org-operator@v1.6.0",
+      "type": "library",
+      "supplier": {
+        "name": "The Grafana Org Operator project"
+      },
+      "name": "grafana-org-operator",
+      "version": "v1.6.0",
+      "description": "Grafana Org Operator",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:helm/grafana-org-operator@v1.6.0",
+      "properties": [
+        {
+          "name": "Elastisys evaluation",
+          "value": "Not evaluated"
+        }
+      ],
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "helmfile.d/upstream/grafana-org-operator/grafana-org-operator"
           }
         ]
       }
@@ -3650,6 +3681,17 @@
       "purl": "pkg:oci/kubereboot/kured@1.20.0?repository_url=ghcr.io"
     },
     {
+      "bom-ref": "pkg:oci/kubitus-project/grafana-org-operator@v1.6.0?repository_url=registry.gitlab.com",
+      "type": "container",
+      "supplier": {
+        "name": "kubitus-project"
+      },
+      "name": "registry.gitlab.com/kubitus-project/grafana-org-operator",
+      "version": "v1.6.0",
+      "cpe": "cpe:2.3:a:kubitus-project:grafana-org-operator:1.6.0:*:*:*:*:*:*:*",
+      "purl": "pkg:oci/kubitus-project/grafana-org-operator@v1.6.0?repository_url=registry.gitlab.com"
+    },
+    {
       "bom-ref": "pkg:oci/kyverno/background-controller@v1.13.4",
       "type": "container",
       "supplier": {
@@ -4199,6 +4241,7 @@
         "pkg:helm/gpu-operator@v24.9.2",
         "pkg:helm/grafana-dashboards@0.3.0",
         "pkg:helm/grafana-label-enforcer@0.1.0",
+        "pkg:helm/grafana-org-operator@v1.6.0",
         "pkg:helm/grafana@10.0.0",
         "pkg:helm/grafana@3.3.6",
         "pkg:helm/grafana@9.2.10",
@@ -4480,6 +4523,13 @@
       "dependsOn": [
         "pkg:oci/grafana/grafana@12.0.3?repository_url=docker.io",
         "pkg:oci/prometheuscommunity/prom-label-proxy@v0.11.0?repository_url=quay.io"
+      ]
+    },
+    {
+      "ref": "pkg:helm/grafana-org-operator@v1.6.0",
+      "dependsOn": [
+        "pkg:oci/grafana/grafana@12.0.3?repository_url=docker.io",
+        "pkg:oci/kubitus-project/grafana-org-operator@v1.6.0?repository_url=registry.gitlab.com"
       ]
     },
     {
@@ -5316,6 +5366,10 @@
     },
     {
       "ref": "pkg:oci/kubereboot/kured@1.20.0?repository_url=ghcr.io",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:oci/kubitus-project/grafana-org-operator@v1.6.0?repository_url=registry.gitlab.com",
       "dependsOn": []
     },
     {

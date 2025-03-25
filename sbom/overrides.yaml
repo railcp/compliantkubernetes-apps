@@ -36,3 +36,9 @@ helmfile.d/charts/fluentd/forwarder:
     - license:
         id: "GPL-3.0"
   evaluation: "Not evaluated"
+
+helmfile.d/upstream/grafana-org-operator/grafana-org-operator:
+  licenses:
+    - license:
+        id: "Apache-2.0"
+  evaluation: "Not evaluated"
