@@ -76,6 +76,6 @@ charts:
 
   vmware-tanzu/velero: 6.0.0
 
-  nvidia/gpu-operator: v24.6.2
+  nvidia/gpu-operator: v24.9.2
 
   grafana-org-operator/grafana-org-operator: v1.6.0
