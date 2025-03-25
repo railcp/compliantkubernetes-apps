@@ -4304,15 +4304,15 @@ properties:
                 properties:
                   grafanaAdmin:
                     title: Grafana OIDC Admin Group
-                    type: string
+                    type: [string, array]
                     default: grafana_admin
                   grafanaEditor:
                     title: Grafana OIDC Editor Group
-                    type: string
+                    type: [string, array]
                     default: grafana_editor
                   grafanaViewer:
                     title: Grafana OIDC Viewer Group
-                    type: string
+                    type: [string, array]
                     default: grafana_viewer
           viewersCanEdit:
             title: Grafana Viewers Can Edit
@@ -4364,6 +4364,16 @@ properties:
             $ref: '#/$defs/io.k8s.api.core.v1.Affinity'
       user:
         $ref: '#/properties/grafana/properties/ops'
+
+      orgOperator:
+        title: Grafana Org Operator
+        description: Operator for organizations and connected datasources in grafana
+        type: object
+        properties:
+          enabled:
+            title: Enable The Org Operator
+            type: boolean
+            default: false
   grafanaLabelEnforcer:
     title: Grafana Label Enforcer Config
     description: Configure Grafana Label Enforcer, responsible to filter metrics from different clusters for Grafana datasources.

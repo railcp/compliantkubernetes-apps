@@ -54,3 +54,15 @@ templates:
       - monitoring/ops-grafana
     values:
       - values/grafana/grafana-dashboards.yaml.gotmpl
+
+  grafana-org-operator:
+    inherit: [ template: grafana-org-operator-chart ]
+    name: grafana-org-operator
+    namespace: grafana-org-operator
+    labels:
+      app: grafana-org-operator
+    disableValidationOnInstall: true
+    installed: {{ .Values | get "grafana.orgOperator.enabled" false }}
+    values:
+      serviceMonitor:
+        enabled: true
