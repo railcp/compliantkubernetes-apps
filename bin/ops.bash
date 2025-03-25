@@ -83,6 +83,25 @@ ops_velero() {
   with_kubeconfig "${kubeconfig}" velero "${@}"
 }
 
+ops_opensearch_cli() {
+  CONFIG=$(mktemp)
+  OPENSEARCH_USER="admin"
+  OPENSEARCH_PASSWORD=$(sops --config "${CK8S_CONFIG_PATH}/.sops.yaml" -d "${CK8S_CONFIG_PATH}"/secrets.yaml | yq4 '.opensearch.adminPassword')
+  OPENSEARCH_ENDPOINT="https://opensearch.$(yq4 '.global.opsDomain' "${CK8S_CONFIG_PATH}"/common-config.yaml)"
+  shift
+  cat <<EOF >"$CONFIG"
+  profiles:
+    - name: ck8s
+      endpoint: $OPENSEARCH_ENDPOINT
+      password: $OPENSEARCH_PASSWORD
+      user: $OPENSEARCH_USER
+      max_retry: 3
+      timeout: 10
+EOF
+  opensearch-cli "${@}" --config "$CONFIG" --profile ck8s
+  rm "$CONFIG"
+}
+
 case "${1}" in
 kubectl)
   shift
@@ -103,6 +122,10 @@ helmfile)
 velero)
   shift
   ops_velero "${@}"
+  ;;
+opensearch-cli)
+  shift
+  ops_opensearch_cli "${@}"
   ;;
 *) usage ;;
 esac

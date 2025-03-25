@@ -96,7 +96,7 @@ team)
   ;;
 ops)
   case "${2}" in
-  kubectl | kubecolor | helm | helmfile | velero)
+  kubectl | kubecolor | helm | helmfile | velero | opensearch-cli)
     [[ "${3}" =~ ^(wc|sc)$ ]] || usage
     command="${2}"
     cluster="${3}"
