@@ -1,0 +1,14 @@
+---
+templates:
+  grafana-org-operator:
+    inherit: [ template: grafanaa-org-operator-chart ]
+    name: grafana-org-operator
+    namespace: grafana-org-operator
+    labels:
+      app: grafana-org-operator
+    disableValidationOnInstall: true
+    installed: {{ .Values | get "grafana.org-operator.enabled" false }}
+    values:
+      serviceMonitor:
+        enabled: true
+      - values/grafana-org-operator.yaml.gotmpl

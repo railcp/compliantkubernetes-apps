@@ -35,6 +35,8 @@ repositories:
 
   nvidia: https://helm.ngc.nvidia.com/nvidia
 
+  grafana-org-operator: https://gitlab.com/api/v4/projects/57397033/packages/helm/stable/charts
+
 charts:
   aquasecurity/trivy-operator: 0.26.0
 
@@ -75,3 +77,5 @@ charts:
   vmware-tanzu/velero: 6.0.0
 
   nvidia/gpu-operator: v24.6.2
+
+  grafana-org-operator/grafana-org-operator: v1.6.0

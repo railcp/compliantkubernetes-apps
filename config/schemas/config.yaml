@@ -4304,15 +4304,15 @@ properties:
                 properties:
                   grafanaAdmin:
                     title: Grafana OIDC Admin Group
-                    type: string
+                    type: [string, array]
                     default: grafana_admin
                   grafanaEditor:
                     title: Grafana OIDC Editor Group
-                    type: string
+                    type: [string, array]
                     default: grafana_editor
                   grafanaViewer:
                     title: Grafana OIDC Viewer Group
-                    type: string
+                    type: [string, array]
                     default: grafana_viewer
           viewersCanEdit:
             title: Grafana Viewers Can Edit
