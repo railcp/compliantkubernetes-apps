@@ -10,6 +10,13 @@ run() {
   execute)
     chart_version=$(yq4 '.version' "${ROOT}/helmfile.d/upstream/nvidia/gpu-operator/Chart.yaml")
 
+    gpu_enabled=$(yq_dig "wc" '.gpu.enabled')
+
+    if [[ "${gpu_enabled}" == "false" ]]; then
+      log_info "  - gpu operator not enabled for wc, skipping"
+      return 0
+    fi
+
     if [[ "${CK8S_CLUSTER}" =~ ^(wc|both)$ ]]; then
       current_version=$(helm_do wc get metadata -n gpu-operator nvidia-gpu-operator -ojson | jq -r '.version')
       log_info "operation on workload cluster"
