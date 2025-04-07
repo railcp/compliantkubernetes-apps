@@ -67,6 +67,24 @@ templates:
     installed: {{ and (.Values | get "fluentd.enabled" false) (or (.Values | get "fluentd.audit.enabled" false) (.Values | get "opensearch.enabled" false)) }}
     {{- end }}
     name: fluentd-forwarder
+    strategicMergePatches:
+      - apiVersion: apps/v1
+        kind: DaemonSet
+        metadata:
+          name: fluentd-forwarder
+        spec:
+          template:
+            spec:
+              containers:
+              - name: fluentd-forwarder
+                volumeMounts:
+                - $patch: delete
+                  name: libsystemddir
+                  mountPath: /usr/lib64
+              volumes:
+              - $patch: delete
+                name: libsystemddir
+
     needs:
       - fluentd-system/networkpolicy
       - fluentd-system/podsecuritypolicy
@@ -105,6 +123,23 @@ templates:
       - values/fluentd/forwarder-common.yaml.gotmpl
       - values/fluentd/forwarder-workload-cluster.yaml.gotmpl
       - values/fluentd/forwarder-workload-cluster-user.yaml.gotmpl
+    strategicMergePatches:
+      - apiVersion: apps/v1
+        kind: DaemonSet
+        metadata:
+          name: fluentd-fluentd-elasticsearch
+        spec:
+          template:
+            spec:
+              containers:
+              - name: fluentd-fluentd-elasticsearch
+                volumeMounts:
+                - $patch: delete
+                  name: libsystemddir
+                  mountPath: /usr/lib64
+              volumes:
+              - $patch: delete
+                name: libsystemddir
 
   log-manager:
     inherit: [ template: fluentd ]
