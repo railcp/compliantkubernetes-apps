@@ -139,13 +139,13 @@ get_tunnel_ips() {
   local -a ips6_calico_ipip
   local -a ips6_calico_vxlan
   local -a ips_wireguard
-  mapfile -t ips_calico_vxlan < <("${here}/ops.bash" kubectl "${cluster}" get node "${label_argument}" -o jsonpath='{.items[*].metadata.annotations.projectcalico\.org/IPv4VXLANTunnelAddr}')
-  mapfile -t ips_calico_ipip < <("${here}/ops.bash" kubectl "${cluster}" get node "${label_argument}" -o jsonpath='{.items[*].metadata.annotations.projectcalico\.org/IPv4IPIPTunnelAddr}')
-  mapfile -t ips_wireguard < <("${here}/ops.bash" kubectl "${cluster}" get node "${label_argument}" -o jsonpath='{.items[*].metadata.annotations.projectcalico\.org/IPv4WireguardInterfaceAddr}')
+  mapfile -t ips_calico_vxlan < <("${here}/ops.bash" kubectl "${cluster}" get node "${label_argument}" -o jsonpath='{.items[*].metadata.annotations."projectcalico\.org"/IPv4VXLANTunnelAddr}')
+  mapfile -t ips_calico_ipip < <("${here}/ops.bash" kubectl "${cluster}" get node "${label_argument}" -o jsonpath='{.items[*].metadata.annotations."projectcalico\.org"/IPv4IPIPTunnelAddr}')
+  mapfile -t ips_wireguard < <("${here}/ops.bash" kubectl "${cluster}" get node "${label_argument}" -o jsonpath='{.items[*].metadata.annotations."projectcalico\.org"/IPv4WireguardInterfaceAddr}')
 
   if [ "${CK8S_IPV6_ENABLED}" = "true" ]; then
-    mapfile -t ips6_calico_vxlan < <("${here}/ops.bash" kubectl "${cluster}" get node "${label_argument}" -o jsonpath='{.items[*].metadata.annotations.projectcalico\.org/IPv6VXLANTunnelAddr}')
-    mapfile -t ips6_calico_ipip < <("${here}/ops.bash" kubectl "${cluster}" get node "${label_argument}" -o jsonpath='{.items[*].metadata.annotations.projectcalico\.org/IPv6IPIPTunnelAddr}')
+    mapfile -t ips6_calico_vxlan < <("${here}/ops.bash" kubectl "${cluster}" get node "${label_argument}" -o jsonpath='{.items[*].metadata.annotations."projectcalico\.org"/IPv6VXLANTunnelAddr}')
+    mapfile -t ips6_calico_ipip < <("${here}/ops.bash" kubectl "${cluster}" get node "${label_argument}" -o jsonpath='{.items[*].metadata.annotations."projectcalico\.org"/IPv6IPIPTunnelAddr}')
   fi
 
   local -a ips
@@ -174,7 +174,7 @@ get_internal_ips() {
   fi
 
   local -a ips
-  mapfile -t ips < <("${here}/ops.bash" kubectl "${cluster}" get node "${label_argument}" -o jsonpath='{.items[*].status.addresses[?(@.type=="InternalIP")].address}')
+  mapfile -t ips < <("${here}/ops.bash" kubectl "${cluster}" get node "${label_argument}" -o "jsonpath={.items[*].status.addresses[?\(@.type=='\"InternalIP\"'\)].address}")
 
   if [ ${#ips[@]} -eq 0 ]; then
     log_error "No IPs for ${cluster} nodes with label ${label} was found"
