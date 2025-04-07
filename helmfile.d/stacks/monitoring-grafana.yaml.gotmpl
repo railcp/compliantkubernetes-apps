@@ -64,5 +64,5 @@ templates:
     disableValidationOnInstall: true
     installed: {{ .Values | get "grafana.orgOperator.enabled" false }}
     values:
-      serviceMonitor:
+    - serviceMonitor:
         enabled: true
