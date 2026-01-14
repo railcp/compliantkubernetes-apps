@@ -3513,6 +3513,10 @@ properties:
         title: Kured Enabled
         default: false
         type: boolean
+      privileged:
+        title: Let kured run as a privileged container
+        default: false
+        type: boolean
       configuration:
         title: Kured Config
         description: |-

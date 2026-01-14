@@ -56,9 +56,9 @@ hostNetwork: false
 containerSecurityContext:
   runAsUser: 0
   runAsGroup: 0
-  privileged: false
+  privileged: {{ .Values | get "kured.privileged" false }}
   readOnlyRootFilesystem: true
-  allowPrivilegeEscalation: false
+  allowPrivilegeEscalation: {{ .Values | get "kured.privileged" false }}
   capabilities:
     add:
     - CAP_KILL
