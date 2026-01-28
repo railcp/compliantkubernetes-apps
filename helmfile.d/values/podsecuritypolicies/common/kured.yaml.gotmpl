@@ -4,6 +4,7 @@ constraints:
       podSelectorLabels:
         app.kubernetes.io/instance: kured
       allow:
+        privileged: {{ .Values | get "kured.privileged" false }}
         hostNamespace: true
         runAsUser:
           rule: RunAsAny
