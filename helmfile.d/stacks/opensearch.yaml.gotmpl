@@ -127,6 +127,8 @@ templates:
     values:
       - values/opensearch/securityadmin.yaml.gotmpl
       - values/opensearch/configurer.yaml.gotmpl
+      - {{ requiredEnv "CK8S_CONFIG_PATH" }}/tenants.yaml
+      - {{ requiredEnv "CK8S_CONFIG_PATH" }}/opensearch.yaml.gotmpl
 
   opensearch-curator:
     inherit: [ template: opensearch ]

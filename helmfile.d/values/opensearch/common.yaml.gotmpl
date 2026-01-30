@@ -41,7 +41,7 @@ config:
       auto_create_index: "-kubeaudit,-authlog,-other,+*"
     {{- else }}
     action:
-      auto_create_index: ".opensearch*,.opendistro-*,security-auditlog-*"
+      auto_create_index: ".opensearch*,.opendistro-*,security-auditlog-*,admin-*,vector-*"
     {{- end }}
 
     node:

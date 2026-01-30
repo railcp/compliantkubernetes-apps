@@ -22,6 +22,7 @@ create_indices="{{ .Values.config.createIndices }}"
 users='{{ toJson .Values.config.securityPlugin.users }}'
 roles='{{ toJson .Values.config.securityPlugin.roles }}'
 rolesmappings='{{ toJson .Values.config.securityPlugin.roles_mapping }}'
+tenants='{{ toJson .Values.config.securityPlugin.tenants}}'
 
 template_names=$(ls /files/*.template.json 2> /dev/null | sed s/^.*\\/\// | cut -f1 -d.)
 policy_names=$(ls /files/*.policy.json 2> /dev/null | sed s/^.*\\/\// | cut -f1 -d.)
@@ -267,6 +268,25 @@ create_user() {
   esac
 }
 
+create_tenant() {
+  tenant_name="$1"; tenant_info="$2"
+  response=$(curl --insecure -X PUT "${os_url}/_plugins/_security/api/tenants/${tenant_name}" \
+    -H 'Content-Type: application/json' \
+    -k -s -u "${auth}" \
+    -d "${tenant_info}")
+
+  status=$(echo "${response}" | grep "^{" | jq -r '.status')
+
+  case "${status}" in
+    CREATED|OK)
+      echo "Tenant '${tenant_name}' created"
+      ;;
+    *)
+      log_error_exit "Failed to create tenant '${tenant_name}'" "${response}"
+      ;;
+  esac
+}
+
 create_update_snapshot_policy() {
   echo
   echo "Checking if snapshot policy exists"
@@ -420,6 +440,15 @@ for row in $(echo "${users}"  | jq -r '.[] | @base64'); do
     }
 
     create_user "$(_jq '.username')" "$(_jq '.definition')"
+done
+
+echo "Creating tenants"
+for row in $(echo "${tenants}"  | jq -r '.[] | @base64'); do
+    _jq() {
+        echo ${row} | base64 -d | jq -r ${1}
+    }
+
+    create_tenant "$(_jq '.tenant_name')" "$(_jq '.definition')"
 done
 
 {{ if .Values.config.snapshots.enabled }}

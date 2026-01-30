@@ -28,7 +28,10 @@ config:
     opensearch_security:
       {{ if .Values.opensearch.sso.enabled }}
       auth:
-        type: "openid"
+        multiple_auth_enabled: true
+        type:
+          - openid
+          - basicauth
       openid:
         scope: {{ .Values.opensearch.sso.scope }}
         connect_url: http://dex.dex.svc.cluster.local:5556/.well-known/openid-configuration
@@ -38,7 +41,14 @@ config:
         logout_url: https://{{ .Values.opensearch.dashboards.subdomain }}.{{ .Values.global.baseDomain }}
       {{ end }}
       multitenancy:
-        enabled: false
+        enabled: {{ .Values.opensearch | get "multitenancy" false | quote }}
+        tenants:
+          {{- with .Values | get "opensearch.tenants.preferred" list }}
+          preferred: {{- toYaml . | nindent 10 }}
+          {{- end }}
+
+        enable_filter: true
+
       readonly_mode:
         roles:
           - kibana_read_only
