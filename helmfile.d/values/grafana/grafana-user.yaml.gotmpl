@@ -107,6 +107,8 @@ grafana.ini:
   server:
     root_url: https://{{ .Values.grafana.user.subdomain }}.{{ .Values.global.baseDomain }}
   # Enable user lookup based on email in addition to using unique ID provided by IdPs.
+  auth.anonymous:
+    org_name: UiB
   auth:
     oauth_allow_insecure_email_lookup: true
   auth.generic_oauth:
@@ -123,7 +125,21 @@ grafana.ini:
     allow_sign_up: true
     tls_skip_verify_insecure: {{ not .Values.global.verifyTls }}
     skip_org_role_sync: {{ .Values.grafana.user.oidc.skipRoleSync }}
-    role_attribute_path: contains(groups[*], '{{ .Values.grafana.user.oidc.userGroups.grafanaAdmin }}') && 'Admin' || contains(groups[*], '{{ .Values.grafana.user.oidc.userGroups.grafanaEditor }}') && 'Editor' || contains(groups[*], '{{ .Values.grafana.user.oidc.userGroups.grafanaViewer }}') && 'Viewer'
+    groups_attribute_path: groups
+    role_attribute_path: >-
+  {{- with .Values.grafana.user.oidc.userGroups }}
+    {{- range $admin := (typeIs "string" .grafanaAdmin | ternary (list .grafanaAdmin) .grafanaAdmin) }}
+      contains(groups[*], '{{ $admin }}') && 'Admin' ||
+    {{- end }}
+    {{- range $editor := (typeIs "string" .grafanaEditor | ternary (list .grafanaEditor) .grafanaEditor) }}
+      contains(groups[*], '{{ $editor }}') && 'Editor' ||
+    {{- end }}
+    {{- range $viewer := (typeIs "string" .grafanaViewer | ternary (list .grafanaViewer) .grafanaViewer) }}
+      contains(groups[*], '{{ $viewer }}') && 'Viewer' ||
+    {{- end }}
+  {{- end }}
+      'None'
+    org_attribute_path: groups
   {{ if .Values.grafana.user.oidc.jwtEnabled -}}
   # Enable JWT auth
   auth.jwt:
