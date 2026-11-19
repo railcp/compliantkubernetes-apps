@@ -2,8 +2,8 @@
 
 This file documents all notable changes to [ingress-nginx](https://github.com/kubernetes/ingress-nginx) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
-### 4.14.5
+### 4.13.6
 
-* Update Ingress-Nginx version controller-v1.14.5
+* Update Ingress-Nginx version controller-v1.13.6
 
-**Full Changelog**: https://github.com/kubernetes/ingress-nginx/compare/helm-chart-4.14.4...helm-chart-4.14.5
+**Full Changelog**: https://github.com/kubernetes/ingress-nginx/compare/helm-chart-4.13.5...helm-chart-4.13.6
